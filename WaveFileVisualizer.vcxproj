@@ -153,10 +153,12 @@
   <ItemGroup>
     <ClCompile Include="io\endianness.cpp" />
     <ClCompile Include="WaveFileVisualizer.cpp" />
-    <ClCompile Include="wave\waveheader.cpp" />
+    <ClCompile Include="wave\wavereader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="io\endianness.h" />
+    <ClInclude Include="util\array.h" />
+    <ClInclude Include="util\position.h" />
     <ClInclude Include="wave\wave.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

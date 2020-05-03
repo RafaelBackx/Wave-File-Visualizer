@@ -21,7 +21,7 @@
     <ClCompile Include="io\endianness.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wave\waveheader.cpp">
+    <ClCompile Include="wave\wavereader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,6 +30,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wave\wave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\position.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

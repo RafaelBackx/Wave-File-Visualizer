@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "..//util/position.h"
+#include "..//util/array.h"
 namespace wave
 {
 	struct RIFFCHUNK
@@ -29,23 +31,38 @@ namespace wave
 		char subChunk2ID[4]; // should be equal to data; BIG ENDIAN
 		uint32_t subChunk2Size; // this is the number of bytes in the data, you can also think of this als the size of the read of the subchunk following this number; LITTLE ENDIAN
 	};
-	struct Position
+	//raw data in bytes not in samples yet
+	/*struct DATA
 	{
-		int x, y;
-		Position(int x, int y) : x(x), y(y) {}
-	};
-	struct DATA
-	{
-		std::unique_ptr<uint8_t[]>data;
+		std::unique_ptr<int8_t[]>data;
 		uint32_t length;
 		uint32_t width;
-		uint8_t operator [](const Position& pos) { return data[(pos.x * length) + pos.y]; }
+		int8_t operator [](const Position& pos) { return data[(pos.x * length) + pos.y]; }
+	};*/
+	//std::string getDataChunkID(DATACHUNK& data);
+	//void read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff);
+	//void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
+	//DATA read_DATACHUNK(std::istream& input, DATACHUNK& data, FMTCHUNK& fmt);
+	//std::vector<int32_t> reduceSamples(DATA& data, int reduceBy);
+	class WaveReader
+	{
+	private:
+		RIFFCHUNK riff;
+		FMTCHUNK fmt;
+		DATACHUNK data_chunk;
+		Array<int8_t> data;
+		//typedef uint8_t bytes;
+	public:
+		void read(std::string filepath);
+		//std::vector<uint32_t> reduceSamples(int reduceBy); TODO implement
+		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); TODO implement
+	private:
+		//void readSamples(); TODO implement
+		std::string getDataChunkID(DATACHUNK& data);
+		void read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff);
+		void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
+		Array<int8_t> read_DATACHUNK(std::istream& input, DATACHUNK& data, FMTCHUNK& fmt);
 	};
-	std::string getDataChunkID(DATACHUNK& data);
-	void read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff);
-	void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
-	DATA read_DATACHUNK(std::istream& input, DATACHUNK& data, FMTCHUNK& fmt);
-	std::vector<uint32_t> reduceSamples(DATA& data, int reduceBy);
 }
 
 #endif // !WAVE_H
