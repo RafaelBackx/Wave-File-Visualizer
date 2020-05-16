@@ -13,32 +13,18 @@ std::string wave::WaveReader::getDataChunkID(wave::DATACHUNK& data)
 void wave::WaveReader::read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff)
 {
 	input.read(reinterpret_cast<char*>(&riff), sizeof(RIFFCHUNK));
-	//io::switch_endianness(&riff.chunksize);
 }
 
 void wave::WaveReader::read_FMTCHUNK(std::istream& input, wave::FMTCHUNK& fmt)
 {
 	input.read(reinterpret_cast<char*>(&fmt), sizeof(wave::FMTCHUNK));
-	//io::switch_endianness(&fmt.subChunk1Size);
-	//io::switch_endianness(&fmt.audioFormat);
-	//io::switch_endianness(&fmt.numChannels);
-	//io::switch_endianness(&fmt.sample_rate);
-	//io::switch_endianness(&fmt.byte_rate);
-	//io::switch_endianness(&fmt.block_align);
-	//io::switch_endianness(&fmt.bitsPerSample);
 }
-Array<int8_t> wave::WaveReader::read_DATACHUNK(std::istream& input, wave::DATACHUNK& data, wave::FMTCHUNK& fmt)
+void wave::WaveReader::read_DATACHUNK(std::istream& input, wave::DATACHUNK& data, wave::FMTCHUNK& fmt)
 {
 	input.read(reinterpret_cast<char*>(&data), sizeof(DATACHUNK));
 	if (getDataChunkID(data) == "data")
 	{
-		auto data_array = std::make_unique<int8_t[]>(data.subChunk2Size); // declare data as uint8_t data array
-		input.read(reinterpret_cast<char*>(data_array.get()), data.subChunk2Size); 
-		Array<int8_t> data_obj;
-		data_obj.data = std::move(data_array);
-		data_obj.length = (fmt.bitsPerSample / 8);
-		data_obj.width = data.subChunk2Size / (fmt.bitsPerSample / 8);
-		return data_obj;
+		readSamples(input);
 	}
 	else if(getDataChunkID(data) == "LIST")
 	{
@@ -46,15 +32,8 @@ Array<int8_t> wave::WaveReader::read_DATACHUNK(std::istream& input, wave::DATACH
 		input.read(reinterpret_cast<char*>(list_data_array.get()), data.subChunk2Size);
 		wave::DATACHUNK ACTUAL_DATA_HEADER;
 		input.read(reinterpret_cast<char*>(&ACTUAL_DATA_HEADER), sizeof(wave::DATACHUNK));
-		auto ACTUAL_DATA = std::make_unique<int8_t[]>(ACTUAL_DATA_HEADER.subChunk2Size);
-		std::cout << "list data" << data.subChunk2Size << "actual data" << ACTUAL_DATA_HEADER.subChunk2Size;
 		data = ACTUAL_DATA_HEADER;
-		input.read(reinterpret_cast<char*>(ACTUAL_DATA.get()), data.subChunk2Size);
-		Array<int8_t> data_obj;
-		data_obj.data = std::move(ACTUAL_DATA);
-		data_obj.length = (fmt.bitsPerSample / 8);
-		data_obj.width = data.subChunk2Size / (fmt.bitsPerSample / 8);
-		return data_obj;
+		readSamples(input);
 	}
  	std::cout << data.subChunk2Size << std::endl;
 }
@@ -91,29 +70,77 @@ void wave::WaveReader::read(std::string filename)
 {
 	std::ifstream file(filename, std::ios::binary);
 	//read riff chunk
-	RIFFCHUNK riff;
-	read_RIFFCHUNK(file, riff);
+	read_RIFFCHUNK(file, this->riff);
 	//read fmt chunk
-	FMTCHUNK fmt;
-	read_FMTCHUNK(file, fmt);
+	read_FMTCHUNK(file, this->fmt);
 	//read data chunk, fills data object
-	DATACHUNK data_chunk;
-	Array<int8_t> data = read_DATACHUNK(file,data_chunk,fmt);
+	read_DATACHUNK(file, this->data_chunk, fmt);
 	std::cout << sizeof(Array<int8_t>) << std::endl;
+	//this->readSamples(file);
+}
 
-
-	//// debugging purposes
-
-	for (int i = 0 ;i<10; i++) // forward loop
+void wave::WaveReader::readSamples(std::istream& input)
+{
+	//get Type
+	switch (fmt.bitsPerSample)
 	{
-		int16_t sample = (data[Position(i, 0)] | (data[Position(i, 1)] << 8));
-		std::cout << std::hex << +sample << std::endl;
+	case 8:
+		readSamples <uint8_t> (input);
+		break;
+	case 16:
+		readSamples<int16_t>(input);
+		break;
+	case 24:
+		readSamples<int32_t>(input);
+		break;
+	case 32:
+		readSamples<int32_t>(input);
+		break;
+	default:
+		abort(); // need to change this probably
 	}
-	//for (int i = data.width - 1; i > 0; i--) // backwards loop
-	//{
-	//	for (int j = data.length - 1; j >= 0; j--)
-	//	{
-	//		std::cout << "data - ( " << i << ", " << j << ")" << std::hex << +data[wave::Position(i, j)] << std::endl;
-	//	}
-	//}
+}
+
+template<typename T>
+void wave::WaveReader::readSamples(std::istream& input)
+{
+	int width = this->data_chunk.subChunk2Size / (this->fmt.bitsPerSample / 8);
+	std::vector<T> _samples(width);
+	input.read(reinterpret_cast<char*>(&_samples[0]), this->data_chunk.subChunk2Size);
+	this->variant = _samples;
+	switch (this->variant.index())
+	{
+	case 0:
+		this->cast(std::get<std::vector<uint8_t>>(this->variant));
+		break;
+	case 1:
+		this->cast(std::get<std::vector<int16_t>>(this->variant));
+		break;
+	case 2:
+		this->cast(std::get<std::vector<int32_t>>(this->variant));
+		break;
+	default:
+		break;
+	}
+	for (int i=0;i<10;i++)
+	{
+		std::cout << this->samples[i] << std::endl;
+	}
+	std::cout << "hello" << std::endl;
+}
+
+void wave::WaveReader::cast(std::vector<uint8_t> data)
+{
+	std::vector<int> sample_data(data.begin(),data.end());
+	this->samples = sample_data;
+}
+void wave::WaveReader::cast(std::vector<int16_t> data)
+{
+	std::vector<int> sample_data(data.begin(), data.end());
+	this->samples = sample_data;
+}
+void wave::WaveReader::cast(std::vector<int32_t> data)
+{
+	std::vector<int> sample_data(data.begin(), data.end());
+	this->samples = sample_data;
 }

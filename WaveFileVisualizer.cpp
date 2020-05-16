@@ -7,9 +7,10 @@
 int main()
 {
 	wave::WaveReader waveReader;
-	//waveReader.read("D:\\Andere\\c++\\wave_files\\music.wav");
+	waveReader.read("D:\\Andere\\c++\\wave_files\\music.wav");
 	//waveReader.read("D:\\Andere\\c++\\wave_files\\stress.wav");
-	waveReader.read("D:\\Andere\\c++\\wave_files\\file_example_WAV_10MG.wav");
+	//waveReader.read("D:\\Andere\\c++\\wave_files\\file_example_WAV_10MG.wav");
+	//waveReader.read("D:\\Andere\\c++\\wave_files\\love_wreck.wav");
 
 	//std::ifstream file("D:\\Andere\\c++\\wave_files\\music.wav", std::ios::binary);
 	//std::ifstream file("D:\\Andere\\c++\\wave_files\\stress.wav");
