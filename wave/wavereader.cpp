@@ -38,33 +38,33 @@ void wave::WaveReader::read_DATACHUNK(std::istream& input, wave::DATACHUNK& data
  	std::cout << data.subChunk2Size << std::endl;
 }
 
-//std::vector<int32_t> wave::reduceSamples(wave::DATA& data_block, int reduceBy)
-//{
-//	uint8_t counter = 0;
-//	int32_t data = 0;
-//	int32_t sampleCounter = 0;
-//	std::vector<int32_t> result;
-//	result.reserve((data_block.width / data_block.length) / reduceBy);
-//	for (int x=0;x < data_block.width;x++)
-//	{
-//		for (int y=0;y < data_block.length;y++)
-//		{
-//			if (counter < reduceBy)
-//			{
-//				data += data_block[Position(x, y)];
-//			}
-//			else
-//			{
-//				data /= reduceBy;
-//				result.emplace_back(data);
-//				data = data_block[Position(x,y)];
-//				counter = 0;
-//			}
-//		}
-//		++counter;
-//	}
-//	return result;
-//}
+std::vector<int> wave::WaveReader::reduceSamples(int factor)
+{
+	uint8_t counter = 0;
+	int32_t data = 0;
+	int32_t sampleCounter = 0;
+	std::vector<int> result;
+	int length = this->getSamples().size();
+	std::cout << length/factor << std::endl;
+	result.reserve(length / factor);
+	std::cout << result.size() << std::endl;
+	for (int x=0;x < length;x++)
+	{
+		if (counter < factor)
+		{
+			data += this->getSamples()[x];
+		}
+		else
+		{
+			data /= factor;
+			result.push_back(data);
+			data = this->getSamples()[x];
+			counter = 0;
+		}
+		++counter;
+	}
+	return result;
+}
 
 void wave::WaveReader::read(std::string filename)
 {
@@ -75,7 +75,6 @@ void wave::WaveReader::read(std::string filename)
 	read_FMTCHUNK(file, this->fmt);
 	//read data chunk, fills data object
 	read_DATACHUNK(file, this->data_chunk, fmt);
-	std::cout << sizeof(Array<int8_t>) << std::endl;
 	//this->readSamples(file);
 }
 
@@ -122,11 +121,11 @@ void wave::WaveReader::readSamples(std::istream& input)
 	default:
 		break;
 	}
-	for (int i=0;i<10;i++)
-	{
-		std::cout << this->samples[i] << std::endl;
-	}
-	std::cout << "hello" << std::endl;
+	//for (int i=0;i<10;i++)
+	//{
+	//	std::cout << this->samples[i] << std::endl;
+	//}
+	//std::cout << "hello" << std::endl;
 }
 
 void wave::WaveReader::cast(std::vector<uint8_t> data)

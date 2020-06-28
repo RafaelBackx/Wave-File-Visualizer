@@ -1,10 +1,25 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-struct Position
+#include <iostream>
+
+
+struct Position final
 {
-	int x, y;
-	Position(int x,int y): x(x), y(y){}
+    unsigned x, y;
+
+    Position(unsigned x, unsigned y)
+        : x(x), y(y) { }
+
+    Position operator +(const Position& p) const
+    {
+        return Position(x + p.x, y + p.y);
+    }
 };
 
-#endif POSITION_H
+inline std::ostream& operator <<(std::ostream& out, const Position& p)
+{
+    return out << "(" << p.x << "," << p.y << ")";
+}
+
+#endif

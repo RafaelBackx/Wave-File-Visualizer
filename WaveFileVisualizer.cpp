@@ -3,42 +3,86 @@
 #include <iostream>
 #include <fstream>
 #include "wave/wave.h"
+#include <SFML/Graphics.hpp>
+#include "imaging/bmp-format.h"
+#include "util//position.h"
+
+void drawRect(const Position& start, const Position& end, imaging::Bitmap& image, const imaging::Color color) 
+{
+	int width = end.x - start.x;
+	int height = end.y - start.y;
+	for (int i =start.x;i<=start.x+width;i++)
+	{
+		//std::cout << "drawing...x" << std::endl;
+		for (int j = start.y; j<start.y + height; j++)
+		{
+			if (image.is_inside(Position(i, j))) 
+			{
+				//std::cout << "drawing..." << std::endl;
+				image[Position(i, j)] = color;
+			}
+			else {
+				std::cout << "oopsie"<< std::endl;
+			}
+		}
+	}
+}
 
 int main()
 {
-	wave::WaveReader waveReader;
-	waveReader.read("D:\\Andere\\c++\\wave_files\\music.wav");
 	//waveReader.read("D:\\Andere\\c++\\wave_files\\stress.wav");
 	//waveReader.read("D:\\Andere\\c++\\wave_files\\file_example_WAV_10MG.wav");
 	//waveReader.read("D:\\Andere\\c++\\wave_files\\love_wreck.wav");
+	wave::WaveReader waveReader;
+	waveReader.read("D:\\Andere\\c++\\wave_files\\love_wreck.wav");
+	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
+	std::cout << "sample rate: " << waveReader.fmt.sample_rate << std::endl;
+	std::cout << "number of samples: " << waveReader.getSamples().size() << std::endl;
+	std::cout << "sample width: " << waveReader.fmt.bitsPerSample << std::endl;
+	std::cout << "reducing... " << std::endl;
+	std::vector<int> reducedSamples = waveReader.reduceSamples(100);
+	std::cout << "number of reduced samples: " << reducedSamples.size() << std::endl;
 
-	//std::ifstream file("D:\\Andere\\c++\\wave_files\\music.wav", std::ios::binary);
-	//std::ifstream file("D:\\Andere\\c++\\wave_files\\stress.wav");
-	//std::ifstream file("D:\\Andere\\c++\\wave_files\\file_example_WAV_10MG.wav", std::ios::binary);
-	//wave::RIFFCHUNK riff;
-	//wave::read_RIFFCHUNK(file, riff);
-	//wave::FMTCHUNK fmt;
-	//wave::read_FMTCHUNK(file, fmt);
-	//wave::DATACHUNK data_chunk;
-	//auto data = wave::read_DATACHUNK(file, data_chunk,fmt);
-	//std::cout << "size unique Pointer: " << sizeof(data) << std::endl;
-	//for (int i = 0 ;i<10; i++) // forward loop
+	//Bitmap test
+	int length = reducedSamples.size();
+	std::cout << "creating bitmap..." << std::endl;
+	imaging::Bitmap test(length+1, 201);
+	std::cout << "drawing on bitmap... (this may take a while)" << std::endl;
+	for (int i=0;i<length;i++)
+	{
+		Position start(i,200);
+		if ((reducedSamples[i]) != 0) {
+			Position end(i, 200 - ((double)(reducedSamples[i]) / 255) * 200);
+			//std::cout << start << std::endl;
+			//std::cout << end << std::endl;
+			drawRect(end, start, test, imaging::Color(1, 1, 1));
+		}
+		//std::cout << +(reducedSamples[i]) << std::endl;
+	}
+	//imaging::Bitmap testImage(500, 500);
+	//drawRect(Position(100, 100), Position(400, 400), test, imaging::Color(0.16,0.33,0.58));
+	std::cout << "saving the image..." << std::endl;
+	imaging::save_as_bmp("1mg.bmp", test);
+	//SFML
+	//sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+	//sf::CircleShape shape(100.f);
+	//shape.setFillColor(sf::Color::Green);
+
+	//while (window.isOpen())
 	//{
-	//	int16_t sample = (data[wave::Position(i, 0)] | (data[wave::Position(i, 1)] << 8));
-	//	std::cout << std::hex << +sample << std::endl;
-	//}
-	//for (int i = data.width -1 ;i>0; i--) // backwards loop
-	//{
-	//	for (int j=data.length-1; j>=0;j--)
+	//	sf::Event event;
+	//	while (window.pollEvent(event))
 	//	{
-	//		std::cout << "data - ( " << i  << ", " << j << ")" << std::hex << +data[wave::Position(i, j)] << std::endl;
+	//		if (event.type == sf::Event::Closed)
+	//			window.close();
 	//	}
+
+	//	window.clear();
+	//	window.draw(shape);
+	//	window.display();
 	//}
-	//std::vector<int32_t> reducedSamples = wave::reduceSamples(data, 100);
-	//std::cout << std::hex << +data[wave::Position(data.width-1, data.length)];
-	//std::cout << std::hex << +data[wave::Position(data.width-1, data.length - 1)] << std::endl;
-	//std::cout << "data size = " << data.width  << std::endl;
-	//std::cout << "reduced samples = " << reducedSamples.size() << std::endl;
+
+	//return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

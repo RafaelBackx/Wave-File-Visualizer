@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 #include "..//util/position.h"
-#include "..//util/array.h"
 #include <variant>
 
 namespace wave
@@ -37,14 +36,15 @@ namespace wave
 	class WaveReader
 	{
 	private:
-		RIFFCHUNK riff;
-		FMTCHUNK fmt;
-		DATACHUNK data_chunk;
 		std::variant <std::vector<uint8_t>, std::vector<int16_t>, std::vector<int32_t>> variant;
 		std::vector<int> samples;
 	public:
+		RIFFCHUNK riff;
+		FMTCHUNK fmt;
+		DATACHUNK data_chunk;
 		void read(std::string filepath);
-		//std::vector<uint32_t> reduceSamples(int reduceBy); TODO implement
+		std::vector<int>& getSamples() { return this->samples; }
+		std::vector<int> reduceSamples(int factor = 100); //TODO implement
 		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); TODO implement
 	private:
 
