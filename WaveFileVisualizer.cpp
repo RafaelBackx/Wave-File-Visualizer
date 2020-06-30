@@ -3,66 +3,31 @@
 #include <iostream>
 #include <fstream>
 #include "wave/wave.h"
-#include <SFML/Graphics.hpp>
 #include "imaging/bmp-format.h"
 #include "util//position.h"
-
-void drawRect(const Position& start, const Position& end, imaging::Bitmap& image, const imaging::Color color) 
-{
-	int width = end.x - start.x;
-	int height = end.y - start.y;
-	for (int i =start.x;i<=start.x+width;i++)
-	{
-		//std::cout << "drawing...x" << std::endl;
-		for (int j = start.y; j<start.y + height; j++)
-		{
-			if (image.is_inside(Position(i, j))) 
-			{
-				//std::cout << "drawing..." << std::endl;
-				image[Position(i, j)] = color;
-			}
-			else {
-				std::cout << "oopsie"<< std::endl;
-			}
-		}
-	}
-}
+#include "imaging/visualization.h"
+#include <cmath>
+#include "SFML/Audio/Sound.hpp"
+#include "SFML/Audio/SoundBuffer.hpp"
+#include "SFML/Audio/Music.hpp"
 
 int main()
 {
-	//waveReader.read("D:\\Andere\\c++\\wave_files\\stress.wav");
-	//waveReader.read("D:\\Andere\\c++\\wave_files\\file_example_WAV_10MG.wav");
-	//waveReader.read("D:\\Andere\\c++\\wave_files\\love_wreck.wav");
 	wave::WaveReader waveReader;
-	waveReader.read("D:\\Andere\\c++\\wave_files\\love_wreck.wav");
+	waveReader.read("D:\\Andere\\c++\\wave_files\\Mr.BlueSky.wav");
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
 	std::cout << "sample rate: " << waveReader.fmt.sample_rate << std::endl;
 	std::cout << "number of samples: " << waveReader.getSamples().size() << std::endl;
 	std::cout << "sample width: " << waveReader.fmt.bitsPerSample << std::endl;
-	std::cout << "reducing... " << std::endl;
-	std::vector<int> reducedSamples = waveReader.reduceSamples(100);
-	std::cout << "number of reduced samples: " << reducedSamples.size() << std::endl;
-
-	//Bitmap test
-	int length = reducedSamples.size();
-	std::cout << "creating bitmap..." << std::endl;
-	imaging::Bitmap test(length+1, 201);
-	std::cout << "drawing on bitmap... (this may take a while)" << std::endl;
-	for (int i=0;i<length;i++)
+	std::cout << "encoding: " << waveReader.fmt.audioFormat << std::endl;
+	sf::Music music;
+	if (!music.openFromFile("D:\\Andere\\c++\\wave_files\\Mr.BlueSky.wav"))
 	{
-		Position start(i,200);
-		if ((reducedSamples[i]) != 0) {
-			Position end(i, 200 - ((double)(reducedSamples[i]) / 255) * 200);
-			//std::cout << start << std::endl;
-			//std::cout << end << std::endl;
-			drawRect(end, start, test, imaging::Color(1, 1, 1));
-		}
-		//std::cout << +(reducedSamples[i]) << std::endl;
+		std::cout << "Error when reading music from file! " << std::endl;
+		return -1;
 	}
-	//imaging::Bitmap testImage(500, 500);
-	//drawRect(Position(100, 100), Position(400, 400), test, imaging::Color(0.16,0.33,0.58));
-	std::cout << "saving the image..." << std::endl;
-	imaging::save_as_bmp("1mg.bmp", test);
+	music.play();
+	sfmlVisualization::visualize(waveReader);
 	//SFML
 	//sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
 	//sf::CircleShape shape(100.f);

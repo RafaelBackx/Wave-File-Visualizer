@@ -163,6 +163,7 @@
     <ClCompile Include="imaging\bitmap.cpp" />
     <ClCompile Include="imaging\bmp-format.cpp" />
     <ClCompile Include="imaging\color.cpp" />
+    <ClCompile Include="imaging\visualization.cpp" />
     <ClCompile Include="io\endianness.cpp" />
     <ClCompile Include="logging.cpp" />
     <ClCompile Include="WaveFileVisualizer.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="imaging\bitmap.h" />
     <ClInclude Include="imaging\bmp-format.h" />
     <ClInclude Include="imaging\color.h" />
+    <ClInclude Include="imaging\visualization.h" />
     <ClInclude Include="io\endianness.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="util\array.h" />

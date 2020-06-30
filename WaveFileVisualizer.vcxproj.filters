@@ -39,6 +39,9 @@
     <ClCompile Include="easylogging++.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="imaging\visualization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="io\endianness.h">
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\tagged.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imaging\visualization.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
