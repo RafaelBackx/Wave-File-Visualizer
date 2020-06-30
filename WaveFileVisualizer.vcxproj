@@ -184,6 +184,11 @@
     <ClInclude Include="util\tagged.h" />
     <ClInclude Include="wave\wave.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="sprites\pause.png" />
+    <Image Include="sprites\play.png" />
+    <Image Include="sprites\stop.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

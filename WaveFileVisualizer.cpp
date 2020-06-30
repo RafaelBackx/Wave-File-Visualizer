@@ -7,27 +7,25 @@
 #include "util//position.h"
 #include "imaging/visualization.h"
 #include <cmath>
-#include "SFML/Audio/Sound.hpp"
-#include "SFML/Audio/SoundBuffer.hpp"
-#include "SFML/Audio/Music.hpp"
 
 int main()
 {
+	std::string musicFile = "D:\\Andere\\c++\\wave_files\\file_example_WAV_1MG.wav";
 	wave::WaveReader waveReader;
-	waveReader.read("D:\\Andere\\c++\\wave_files\\Mr.BlueSky.wav");
+	waveReader.read(musicFile);
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
 	std::cout << "sample rate: " << waveReader.fmt.sample_rate << std::endl;
 	std::cout << "number of samples: " << waveReader.getSamples().size() << std::endl;
 	std::cout << "sample width: " << waveReader.fmt.bitsPerSample << std::endl;
 	std::cout << "encoding: " << waveReader.fmt.audioFormat << std::endl;
 	sf::Music music;
-	if (!music.openFromFile("D:\\Andere\\c++\\wave_files\\Mr.BlueSky.wav"))
+	if (!music.openFromFile(musicFile))
 	{
 		std::cout << "Error when reading music from file! " << std::endl;
 		return -1;
 	}
-	music.play();
-	sfmlVisualization::visualize(waveReader);
+	//music.play();
+	sfmlVisualization::visualize(waveReader,&music);
 	//SFML
 	//sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
 	//sf::CircleShape shape(100.f);
@@ -47,7 +45,7 @@ int main()
 	//	window.display();
 	//}
 
-	//return 0;
+	return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

@@ -2,6 +2,7 @@
 #define VISUALIZATION_H
 #include "bmp-format.h"
 #include "..//wave/wave.h"
+#include <SFML/Audio/Music.hpp>
 namespace visualization 
 {
 	void drawRect(const Position& start, const Position& end, imaging::Bitmap& image, const imaging::Color color);
@@ -14,6 +15,6 @@ namespace visualization
 
 namespace sfmlVisualization
 {
-	void visualize(wave::WaveReader& wavereader);
+	void visualize(wave::WaveReader& wavereader, sf::Music* music);
 }
 #endif

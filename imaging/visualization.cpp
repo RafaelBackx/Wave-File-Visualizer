@@ -112,30 +112,61 @@ void getMinMax(const std::vector<int> samples, double* min, double* max)
 	}
 }
 
-void sfmlVisualization::visualize(wave::WaveReader& wavereader)
+void createPlayPauseButtons(sf::RenderWindow* window, sf::RectangleShape& playButton, sf::RectangleShape& pauseButton)
+{
+	int spacingBetweenButtons = 10;
+	int buttonsHeight = 70;
+	int buttonsWidth = 70;
+	// PLAYBUTTON
+	sf::Texture playImage;
+	if (!playImage.loadFromFile("sprites/play.png"))
+	{
+		std::cout << "cannot load play.png from file" << std::endl;
+	}
+	//playButton.setTexture(&playImage);
+	playButton.setFillColor(sf::Color::Green);
+	sf::Vector2f positionPlay((window->getSize().x / 2)-spacingBetweenButtons/2, window->getSize().y - 100);
+	playButton.setSize(sf::Vector2f(buttonsWidth, buttonsHeight));
+	playButton.setPosition(positionPlay);
+
+	// PAUSEBUTTON	
+	sf::Texture pauseImage;
+	if (!pauseImage.loadFromFile("sprites/pause.png"))
+	{
+		std::cout << "cannot load pause.png from file" << std::endl;
+	}
+	//pauseButton.setTexture(&pauseImage);
+	pauseButton.setFillColor(sf::Color::Red);
+	sf::Vector2f positionPause(((window->getSize().x / 2) + spacingBetweenButtons / 2)+buttonsWidth, window->getSize().y - 100);
+	pauseButton.setSize(sf::Vector2f(buttonsWidth, buttonsHeight));
+	pauseButton.setPosition(positionPause);
+}
+
+void sfmlVisualization::visualize(wave::WaveReader& wavereader, sf::Music* music)
 {
 	std::vector<int> reducedSamples = wavereader.reduceSamples();
 	const int channelMask = getMask(wavereader.fmt.bitsPerSample);
 	double min = 0, max = 0;
 	getMinMax(reducedSamples,&min,&max);
-	std::cout << "min: " << min << " max: " << max << std::endl;
 	sf::RenderWindow window;
 	int windowWidth = 800, windowHeight = 800;
 	int spacing = 5;
 	int offset = 0;
 	int length = reducedSamples.size();
 	int frameRate = 60;
+	bool paused = false;
 	//window.setVerticalSyncEnabled(true); // Apparently you cannot use these functions with each other
-	int song_length = (wavereader.getSamples().size()/wavereader.fmt.numChannels)/wavereader.fmt.sample_rate;
-	int samplesPerSecond = reducedSamples.size() / song_length;
-	std::cout << "reduced samples: " << reducedSamples.size() << std::endl;
-	std::cout << "song length: " << song_length << std::endl;
-	std::cout << "samples/second: " << samplesPerSecond << std::endl;
-	window.create(sf::VideoMode(samplesPerSecond, windowHeight), "Visualization");
+	double song_length = ((double)wavereader.getSamples().size()/(double)wavereader.fmt.numChannels)/(double)wavereader.fmt.sample_rate;
+	double samplesPerSecond = (double)reducedSamples.size() / song_length;
+	window.create(sf::VideoMode(samplesPerSecond, windowHeight+200), "Visualization");
 	window.setFramerateLimit(frameRate); // change in the future probably
+	music->play();
 	while (window.isOpen())
 	{
+		sf::Vector2f previousSize(window.getSize());
 		sf::Event event;
+		sf::RectangleShape playButton,pauseButton;
+		createPlayPauseButtons(&window, playButton, pauseButton);
 		while(window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
@@ -144,27 +175,45 @@ void sfmlVisualization::visualize(wave::WaveReader& wavereader)
 			}
 			if (event.type == sf::Event::Resized)
 			{
-				std::cout << "yeees debugging time!!!!!" << std::endl;
+				double scaleX = event.size.width / previousSize.x;
+				double scaleY = event.size.height / previousSize.y;
+			}
+			if (event.type == sf::Event::MouseButtonPressed)
+			{
+				std::cout << event.mouseButton.x << " " << event.mouseButton.y << std::endl;
+				auto boundsPlay = playButton.getLocalBounds();
+				auto boundsPause = pauseButton.getLocalBounds();
+				if (playButton.getLocalBounds().contains(sf::Vector2f(event.mouseButton.x - playButton.getPosition().x, event.mouseButton.y-playButton.getPosition().y)))
+				{
+					paused = !paused;
+					music->play();
+				}
+				else if (pauseButton.getLocalBounds().contains(sf::Vector2f(event.mouseButton.x-pauseButton.getPosition().x, event.mouseButton.y-pauseButton.getPosition().y)))
+				{
+					paused = !paused;
+					music->pause();
+				}
 			}
 		}
-		window.clear(sf::Color::White); // clears the frame with given color
-		// draw
-		for (int i=offset;i<(samplesPerSecond/frameRate)+offset && i<length;i++)
+		if (!paused)
 		{
-			//double height = 600.0 - transform(reducedSamples[i], channelMask);
-			double height = (reducedSamples[i] / max) * windowHeight/2;
-			//std::cout <<reducedSamples[i] << " " <<  height << std::endl;
-			sf::RectangleShape rectangle(sf::Vector2f(frameRate-5,height*-1));
-			rectangle.setFillColor(sf::Color::Blue);
-			//abs(20 * log10(abs((double)(reducedSamples[i] & channelMask))
-			//std::cout << abs(20 * log10(abs((double)(reducedSamples[i] & channelMask)))) << std::endl;
-			//std::cout << transform(reducedSamples[i],channelMask) << std::endl;
-			//std::cout << reducedSamples[i] << std::endl;
-			//std::cout << (i - offset) * 5 << std::endl;
-			rectangle.setPosition(sf::Vector2f(((i-offset)*frameRate),windowHeight/2));
-			window.draw(rectangle);
+			window.clear(sf::Color::Black); // clears the frame with given color
+
+			// draw
+			for (int i = offset; i < (samplesPerSecond / frameRate) + offset && i < length; i++)
+			{
+				//double height = 600.0 - transform(reducedSamples[i], channelMask);
+				double height = (reducedSamples[i] / max) * windowHeight / 2;
+				sf::RectangleShape rectangle(sf::Vector2f(frameRate - (spacing / 2), height * -1));
+				rectangle.setFillColor(sf::Color::Blue);
+				rectangle.setPosition(sf::Vector2f(((i - offset) * frameRate), windowHeight / 2));
+				window.draw(rectangle);
+			}
+			offset += samplesPerSecond / frameRate;
 		}
-		offset+=samplesPerSecond/frameRate;
+		//createPlayPauseButton(&window);
+		window.draw(playButton);
+		window.draw(pauseButton);
 		window.display();
 	}
 }
