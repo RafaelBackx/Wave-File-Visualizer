@@ -7,11 +7,11 @@
 #include "util//position.h"
 #include "imaging/visualization.h"
 #include <cmath>
-
+#pragma comment (lib,"shell32")
 int main()
 {
-	std::string musicFile = "D:\\Andere\\c++\\wave_files\\file_example_WAV_1MG.wav";
-	wave::WaveReader waveReader;
+	std::string musicFile = "D:\\Andere\\c++\\wave_files\\Mr.BlueSky.wav";
+	/*wave::WaveReader waveReader;
 	waveReader.read(musicFile);
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
 	std::cout << "sample rate: " << waveReader.fmt.sample_rate << std::endl;
@@ -23,27 +23,14 @@ int main()
 	{
 		std::cout << "Error when reading music from file! " << std::endl;
 		return -1;
-	}
-	//music.play();
-	sfmlVisualization::visualize(waveReader,&music);
-	//SFML
-	//sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-	//sf::CircleShape shape(100.f);
-	//shape.setFillColor(sf::Color::Green);
+	}*/
 
-	//while (window.isOpen())
-	//{
-	//	sf::Event event;
-	//	while (window.pollEvent(event))
-	//	{
-	//		if (event.type == sf::Event::Closed)
-	//			window.close();
-	//	}
+	sfmlVisualization::Visualizer vis(musicFile, 1500, 800);
+	std::cout << "setup completed" << std::endl;
+	vis.showMenu();
 
-	//	window.clear();
-	//	window.draw(shape);
-	//	window.display();
-	//}
+	//sfmlVisualization::visualize(waveReader,&music);
+
 
 	return 0;
 }

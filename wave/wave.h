@@ -45,7 +45,7 @@ namespace wave
 		void read(std::string filepath);
 		std::vector<int>& getSamples() { return this->samples; }
 		std::vector<int> reduceSamples(int factor = 100); //TODO implement
-		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); TODO implement
+		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); //TODO implement
 	private:
 
 		void readSamples(std::istream& input);

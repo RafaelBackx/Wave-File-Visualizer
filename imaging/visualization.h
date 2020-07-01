@@ -2,6 +2,7 @@
 #define VISUALIZATION_H
 #include "bmp-format.h"
 #include "..//wave/wave.h"
+#include "gui.h"
 #include <SFML/Audio/Music.hpp>
 namespace visualization 
 {
@@ -15,6 +16,27 @@ namespace visualization
 
 namespace sfmlVisualization
 {
+	class Visualizer
+	{
+	private:
+		wave::WaveReader wavereader;
+		sf::RenderWindow window;
+		sf::Music music;
+		std::string filename;
+		gui::Screen screen;
+	public:
+		Visualizer(std::string filename, int windowWidth, int windowHeight) :screen(), filename(filename), window(), wavereader(), music() 
+		{
+			wavereader.read(filename);
+			if (!music.openFromFile(filename))
+			{
+				std::cout << "Cannot open music file! " << std::endl;
+			}
+			window.create(sf::VideoMode(windowWidth, windowHeight), "Visualizer");
+		}
+		void showMenu();
+	};
+	//void chooseFile(); // TODO implement, Look for api with windows file explorer functionality
 	void visualize(wave::WaveReader& wavereader, sf::Music* music);
 }
 #endif

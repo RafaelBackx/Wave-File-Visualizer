@@ -121,11 +121,6 @@ void wave::WaveReader::readSamples(std::istream& input)
 	default:
 		break;
 	}
-	//for (int i=0;i<10;i++)
-	//{
-	//	std::cout << this->samples[i] << std::endl;
-	//}
-	//std::cout << "hello" << std::endl;
 }
 
 void wave::WaveReader::cast(std::vector<uint8_t> data)
