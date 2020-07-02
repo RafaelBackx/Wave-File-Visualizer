@@ -10,7 +10,7 @@
 #pragma comment (lib,"shell32")
 int main()
 {
-	std::string musicFile = "D:\\Andere\\c++\\wave_files\\Mr.BlueSky.wav";
+	std::string musicFile = "D:\\Andere\\c++\\wave_files\\rasputin.wav";
 	/*wave::WaveReader waveReader;
 	waveReader.read(musicFile);
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
@@ -25,9 +25,40 @@ int main()
 		return -1;
 	}*/
 
-	sfmlVisualization::Visualizer vis(musicFile, 1500, 800);
-	std::cout << "setup completed" << std::endl;
-	vis.showMenu();
+	sf::RenderWindow window;
+	window.create(sf::VideoMode(700, 500),"test");
+	gui::Slider slider(300, 10, 15, 0);
+	slider.setLineColor(sf::Color::Black);
+	slider.setCircleColor(sf::Color::Blue);
+	slider.setPosition(200, 200);
+	gui::Screen screen;
+	screen.addNode(&slider);
+	while (window.isOpen())
+	{
+		sf::Event event;
+		while(window.pollEvent(event))
+		{
+			if(event.type == sf::Event::Closed)
+			{
+				window.close();
+			}
+			if(event.type == sf::Event::MouseButtonPressed)
+			{
+				screen.updateNodesOnClick(sf::Vector2f(event.mouseButton.x, event.mouseButton.y));
+			}
+			if (event.type == sf::Event::MouseMoved)
+			{
+				screen.updateNodesOnHover(sf::Vector2f(event.mouseMove.x, event.mouseMove.y));
+			}
+		}
+		window.clear(sf::Color::White);
+		//draw
+		slider.draw(window);
+		window.display();
+	}
+
+	//sfmlVisualization::Visualizer vis(musicFile, 300, 500);
+	//vis.showMenu();
 
 	//sfmlVisualization::visualize(waveReader,&music);
 

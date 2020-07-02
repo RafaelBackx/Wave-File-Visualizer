@@ -32,9 +32,10 @@ namespace sfmlVisualization
 			{
 				std::cout << "Cannot open music file! " << std::endl;
 			}
-			window.create(sf::VideoMode(windowWidth, windowHeight), "Visualizer");
+			window.create(sf::VideoMode(windowWidth, windowHeight), "Visualizer", sf::Style::Titlebar | sf::Style::Close);
 		}
 		void showMenu();
+		void visualize();
 	};
 	//void chooseFile(); // TODO implement, Look for api with windows file explorer functionality
 	void visualize(wave::WaveReader& wavereader, sf::Music* music);

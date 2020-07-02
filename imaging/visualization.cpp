@@ -37,58 +37,18 @@ void getMinMax(const std::vector<int> samples, double* min, double* max)
 	}
 }
 
-void createPlayPauseButtons(sf::RenderWindow* window, sf::RectangleShape* playButton, sf::RectangleShape* pauseButton)
-{
-	int spacingBetweenButtons = 10;
-	int buttonsHeight = 70;
-	int buttonsWidth = 70;
-	// PLAYBUTTON
-	sf::Texture playImage;
-	if (!playImage.loadFromFile("sprites/play.png"))
-	{
-		std::cout << "cannot load play.png from file" << std::endl;
-	}
-	//playButton.setTexture(&playImage);
-	playButton->setFillColor(sf::Color::Green);
-	sf::Vector2f positionPlay((window->getSize().x / 2)-spacingBetweenButtons/2, window->getSize().y - 100);
-	playButton->setSize(sf::Vector2f(buttonsWidth, buttonsHeight));
-	playButton->setPosition(positionPlay);
-
-	// PAUSEBUTTON	
-	sf::Texture pauseImage;
-	if (!pauseImage.loadFromFile("sprites/pause.png"))
-	{
-		std::cout << "cannot load pause.png from file" << std::endl;
-	}
-	//pauseButton.setTexture(&pauseImage);
-	pauseButton->setFillColor(sf::Color::Red);
-	sf::Vector2f positionPause(((window->getSize().x / 2) + spacingBetweenButtons / 2)+buttonsWidth, window->getSize().y - 100);
-	pauseButton->setSize(sf::Vector2f(buttonsWidth, buttonsHeight));
-	pauseButton->setPosition(positionPause);
-}
-
-void test(gui::Button& button)
-{
-	std::cout << "button test" << std::endl;
-	if (button.getShape().getPosition() == sf::Vector2f(500,500))
-	{
-		button.setPosition(sf::Vector2f(700, 700));
-	}else
-	{
-		button.setPosition(sf::Vector2f(500, 500));
-	}
-	
-}
-
 void sfmlVisualization::Visualizer::showMenu()
 {
 	sf::Event event;
-	gui::Button playButton(200, 50, "button test 1");
-	gui::Button otherTestButton(50, 100, "just another test");
-	playButton.setPosition(sf::Vector2f(500, 500));
-	otherTestButton.setPosition(sf::Vector2f(200, 200));
-	this->screen.addNode(&playButton);
-	this->screen.addNode(&otherTestButton);
+	gui::Button start(100, 30, "start visulisation");
+	start.setPosition(sf::Vector2f((this->window.getSize().x/2)-(start.getWidth()/2), 100));
+	sf::RenderWindow* window = &this->window;
+	start.setOnClick([&]()
+	{
+		//this->window.close();
+		this->visualize();
+	});
+	this->screen.addNode(&start);
 	while (this->window.isOpen())
 	{
 		while (this->window.pollEvent(event))
@@ -116,85 +76,113 @@ void sfmlVisualization::Visualizer::showMenu()
 			//Clear
 			this->window.clear(sf::Color::White);
 			//Draw
-			playButton.draw(window);
-			otherTestButton.draw(window);
-			/*sf::RectangleShape playButton;
-			playButton.setSize(sf::Vector2f(200, 50));
-			playButton.setFillColor(sf::Color::White);
-			window.draw(playButton);*/
+			start.draw(this->window);
 			//Display
 			this->window.display();
 		}
 	}
 }
 
-void sfmlVisualization::visualize(wave::WaveReader& wavereader, sf::Music* music)
+sf::Color getColor(sf::Color c)
+{
+	int r = c.r, g = c.g, b = c.b;
+	if (r > 0 && b == 0) 
+	{
+		r--;
+		g++;
+	}
+	if (g > 0 && r == 0) 
+	{
+		g--;
+		b++;
+	}
+	if (b > 0 && g == 0) 
+	{
+		r++;
+		b--;
+	}
+	return sf::Color(r, g, b);
+}
+
+void sfmlVisualization::Visualizer::visualize()
 {
 	//std::vector<int> reducedSamples = wavereader.reduceSamples();
-	const int channelMask = getMask(wavereader.fmt.bitsPerSample);
-	double max = pow(2, wavereader.fmt.bitsPerSample);
-	std::cout << "max=" << max << std::endl;
-	sf::RenderWindow window;
-	int windowWidth = 1500, windowHeight = 800;
+	const int channelMask = getMask(this->wavereader.fmt.bitsPerSample);
+	double max = pow(2, this->wavereader.fmt.bitsPerSample);
+	//sf::RenderWindow window;
+	int windowWidth = 1500, windowHeight = 700;
 	int spacing = 5;
+	int spacingBetweenButtons = 10;
 	int offset = 0;
-	int length = wavereader.getSamples().size()/wavereader.fmt.numChannels;
-	int frameRate = 60;
-	bool paused = false;
-	double song_length = (double)length/(double)wavereader.fmt.sample_rate;
-	double samplesPerFrame = wavereader.fmt.sample_rate / frameRate;
+	int length = this->wavereader.getSamples().size()/this->wavereader.fmt.numChannels;
+	int frameRate = 30;
+	double song_length = (double)length/(double)this->wavereader.fmt.sample_rate;
+	double samplesPerFrame = this->wavereader.fmt.sample_rate / frameRate;
 	double rectWidth = windowWidth / samplesPerFrame;
-	window.create(sf::VideoMode(windowWidth, windowHeight+200), "Visualization");
-	window.setFramerateLimit(frameRate); // change in the future probably
-	sf::Clock clock;
-	music->play();
-	while (window.isOpen())
+	//window.create(sf::VideoMode(windowWidth, windowHeight+200), "Visualization");
+	this->window.setFramerateLimit(frameRate); // change in the future probably
+	sf::Color color = sf::Color::Red;
+	//music.setPlayingOffset(sf::Time(sf::microseconds(240000000)));
+	music.play();
+	sf::Image img;
+	this->window.setPosition(sf::Vector2i(25, 25));
+	this->window.setSize(sf::Vector2u(windowWidth, windowHeight+200));
+	gui::Button playButton(75, 75, "");
+	sf::View view(sf::FloatRect(0, 0, windowWidth, windowHeight+200));
+	playButton.setOnClick([&]()
+		{
+			music.play();
+		});
+	playButton.setTexture("sprites/play.png");
+	playButton.setPosition(sf::Vector2f(windowWidth/2-playButton.getWidth() - spacingBetweenButtons, this->window.getSize().y - ((this->window.getSize().y - windowHeight)/2)-playButton.getHeight()));
+	gui::Button pauseButton(75, 75, "");
+	pauseButton.setOnClick([&]()
+		{
+			music.pause();
+		});
+	pauseButton.setTexture("sprites/pause.png");
+	pauseButton.setPosition(sf::Vector2f(windowWidth / 2 + playButton.getWidth() + spacingBetweenButtons, this->window.getSize().y - ((this->window.getSize().y - windowHeight) / 2) - playButton.getHeight()));
+	this->screen.addNode(&playButton);
+	this->screen.addNode(&pauseButton);
+	music.setVolume(50.0f);
+	while (this->window.isOpen())
 	{
-		//sf::Vector2f previousSize(window.getSize());
 		sf::Event event;
-		sf::RectangleShape playButton,pauseButton;
-		createPlayPauseButtons(&window, &playButton, &pauseButton);
-		while(window.pollEvent(event))
+		while(this->window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 			{
-				window.close();
+				this->window.close();
 			}
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
-				std::cout << event.mouseButton.x << " " << event.mouseButton.y << std::endl;
-				auto boundsplay = playButton.getLocalBounds();
-				auto boundspause = pauseButton.getLocalBounds();
-				if (boundspause.contains(sf::Vector2f(event.mouseButton.x - playButton.getPosition().x, event.mouseButton.y-playButton.getPosition().y)))
-				{
-					paused = !paused;
-					music->play();
-				}
-				else if (boundspause.contains(sf::Vector2f(event.mouseButton.x-pauseButton.getPosition().x, event.mouseButton.y-pauseButton.getPosition().y)))
-				{
-					paused = !paused;
-					music->pause();
-				}
+				sf::Vector2f mouse(event.mouseButton.x, event.mouseButton.y);
+				this->screen.updateNodesOnClick(mouse);
+			}
+			if (event.type == sf::Event::Resized)
+			{
+				sf::View visibleArea(sf::FloatRect(0, 0, event.size.width, event.size.height));
+				this->window.setView(visibleArea);
 			}
 		}
-		if (!paused)
+		if (music.Playing)
 		{
-			window.clear(sf::Color::Black); // clears the frame with given color
-			std::cout << clock.getElapsedTime().asSeconds() << std::endl;
-			offset = clock.getElapsedTime().asSeconds() * wavereader.fmt.sample_rate;
+			window.clear(sf::Color::White); // clears the frame with given color
+			offset = this->music.getPlayingOffset().asSeconds() * this->wavereader.fmt.sample_rate;
+			color = getColor(color);
 			// draw
 			for (int i = offset; i < samplesPerFrame + offset && i < length; i++)
 			{
 				//double height = 600.0 - transform(reducedSamples[i], channelMask);
-				double height = (wavereader.getSamples()[i] / max) * windowHeight / 2;
+				double height = (this->wavereader.getSamples()[i] / max) * windowHeight / 2;
 				sf::RectangleShape rectangle(sf::Vector2f(rectWidth, height * -1));
-				rectangle.setFillColor(sf::Color::Blue);
-				rectangle.setPosition(sf::Vector2f(((i - offset)*rectWidth), windowHeight / 2));
-				window.draw(rectangle);
+				rectangle.setFillColor(color);
+				rectangle.setPosition(sf::Vector2f(((i - offset)*rectWidth), (windowHeight / 2)));
+				this->window.draw(rectangle);
 			}
 		}
-		window.draw(playButton);
-		window.draw(pauseButton);
-		window.display();
+		playButton.draw(this->window);
+		pauseButton.draw(this->window);
+		this->window.display();
 	}
 }
