@@ -167,39 +167,50 @@ namespace gui
 		sf::Text text;
 		sf::RectangleShape label;
 		sf::Font font;
+		bool fitToText = true;
+		bool fitToSize = false;
+		float padding = 1.0f;
 	public:
 		ListItem(std::string text, float width, float height) : label(sf::Vector2f(width, height))
 		{
-			this->text.setString(text);
-			this->text.setFillColor(sf::Color::Black);
 			this->font.loadFromFile("sprites/arial.ttf");
 			this->text.setFont(this->font);
+			this->text.setCharacterSize(21);
+			this->setText(text);
+			this->text.setFillColor(sf::Color::Black);
 		}
 		void setColor(sf::Color color) { this->label.setFillColor(color); }
-		void setText(std::string text) { this->text.setString(text); }
+		void setText(std::string text);
 		void setPosition(float x, float y);
 		void setCharacterSize(int size) { this->text.setCharacterSize(size); }
 		void setPosition(sf::Vector2f pos);
+		void setPadding(float padding);
+		void setWidth(float width);
 		void draw(sf::RenderWindow& window);
 
-		sf::RectangleShape getShape() { return this->label; }
+		sf::RectangleShape& getShape() { return this->label; }
+		sf::Vector2f getSize() const { return this->label.getSize(); }
 	};
 
 	class ListBox
 	{
 	private:
-		std::vector<ListItem*> listItems;
+		std::vector<std::unique_ptr<ListItem>> listItems;
 		sf::RectangleShape listBox;
 		sf::Color color;
 		bool fitToContent = true;
 	public:
 		ListBox(float width, float height) : listBox(sf::Vector2f(width,height)){}
-		void addItem(ListItem* listitem);
-		void removeItem(ListItem listitem);
+		void addItem(std::unique_ptr<ListItem> listitem);
+		void setFitToContent(bool fit);
+		//void removeItem(ListItem listitem);
 		void setColor(sf::Color color) { this->listBox.setFillColor(color); }
 		void setPosition(float x, float y);
 		void setPosition(sf::Vector2f pos);
 		void draw(sf::RenderWindow& window);
+
+		sf::RectangleShape getShape() const { return this->listBox; }
+		sf::Vector2f getSize() const { return this->listBox.getSize(); }
 	};
 
 	class Screen

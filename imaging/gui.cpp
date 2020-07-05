@@ -209,6 +209,27 @@ void gui::ListItem::draw(sf::RenderWindow& window)
 	window.draw(this->text);
 }
 
+void gui::ListItem::setText(std::string text)
+{
+	this->text.setString(text);
+	auto bounds = this->text.getLocalBounds();
+	this->label.setSize(sf::Vector2f(bounds.width+padding, bounds.height+padding));
+}
+
+void gui::ListItem::setWidth(float width)
+{
+	auto size = this->label.getSize();
+	this->label.setSize(sf::Vector2f(width, size.y));
+}
+
+void gui::ListItem::setPadding(float padding)
+{
+	this->padding = padding;
+	sf::Vector2f size = this->label.getSize();
+	this->label.setSize(sf::Vector2f(size.x + padding, size.y+padding));
+	//this->text.setPosition(this->text.getPosition().x + padding, this->text.getPosition().y - padding);
+}
+
 void gui::ListBox::setPosition(float x, float y)
 {
 	this->setPosition(sf::Vector2f(x, y));
@@ -218,24 +239,44 @@ void gui::ListBox::setPosition(sf::Vector2f pos)
 {
 	this->listBox.setPosition(pos);
 	float x = pos.x, y = pos.y;
-	for (ListItem* item : this->listItems)
+	for (int i = 0; i < this->listItems.size(); i++)
 	{
 		std::cout << "x: " << x << " y: " << y << std::endl;
-		item->setPosition(x, y);
-		y += item->getShape().getSize().y;
+		this->listItems[i]->setPosition(x, y);
+		y += this->listItems[i]->getShape().getSize().y;
 	}
 }
 
-void gui::ListBox::addItem(gui::ListItem* item)
+void gui::ListBox::addItem(std::unique_ptr<ListItem> item)
 {
-	this->listItems.push_back(item);
+	this->listItems.push_back(std::move(item));
+	if (fitToContent)
+	{
+		float x = 0, y = 0;
+		for (int i=0; i<this->listItems.size();i++)
+		{
+			if (this->listItems[i]->getSize().x> x)
+			{
+				x = this->listItems[i]->getSize().x;
+			}
+			y += this->listItems[i]->getShape().getSize().y;
+		}
+		sf::Vector2f size(x,y);
+		this->listBox.setSize(size);
+	}
+	
+}
+
+void gui::ListBox::setFitToContent(bool fit)
+{
+	this->fitToContent = fit;
 }
 
 void gui::ListBox::draw(sf::RenderWindow& window)
 {
 	window.draw(this->listBox);
-	for (ListItem* item : this->listItems)
+	for (int i=0;i<this->listItems.size();i++)
 	{
-		item->draw(window);
+		this->listItems[i]->draw(window);
 	}
 }

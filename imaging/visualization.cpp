@@ -106,10 +106,8 @@ sf::Color getColor(sf::Color c)
 
 void sfmlVisualization::Visualizer::visualize()
 {
-	//std::vector<int> reducedSamples = wavereader.reduceSamples();
 	const int channelMask = getMask(this->wavereader.fmt.bitsPerSample);
 	double max = pow(2, this->wavereader.fmt.bitsPerSample);
-	//sf::RenderWindow window;
 	int windowWidth = 1500, windowHeight = 700;
 	int spacing = 5;
 	int spacingBetweenButtons = 10;
@@ -119,10 +117,8 @@ void sfmlVisualization::Visualizer::visualize()
 	double song_length = (double)length/(double)this->wavereader.fmt.sample_rate;
 	double samplesPerFrame = this->wavereader.fmt.sample_rate / frameRate;
 	double rectWidth = windowWidth / samplesPerFrame;
-	//window.create(sf::VideoMode(windowWidth, windowHeight+200), "Visualization");
 	this->window.setFramerateLimit(frameRate); // change in the future probably
 	sf::Color color = sf::Color::Red;
-	//music.setPlayingOffset(sf::Time(sf::microseconds(240000000)));
 	sf::Image img;
 	this->window.setPosition(sf::Vector2i(25, 25));
 	this->window.setSize(sf::Vector2u(windowWidth, windowHeight+200));
@@ -185,6 +181,18 @@ void sfmlVisualization::Visualizer::visualize()
 			music.setPlayingOffset(offset);
 			music.play();
 		});
+	gui::ListBox listBoxMeta(0, 0);
+	for (wave::ListField field : this->wavereader.getMetaData())
+	{
+		std::string text = this->wavereader.list.listIds.at(field.getId()) + ": " + field.getValue();
+		std::cout << text << std::endl;
+		std::unique_ptr<gui::ListItem> item = std::make_unique<gui::ListItem>(text ,100,50);
+		item->setPadding(2.0f);
+		item->setColor(sf::Color::Color(210, 210, 210, 240));
+		item->setCharacterSize(21);
+		listBoxMeta.addItem(std::move(item));
+	}
+	listBoxMeta.setPosition(windowWidth - listBoxMeta.getSize().x,0);
 	bool mouseDown = false;
 	this->screen.addNode(&playButton);
 	this->screen.addNode(&volume);
@@ -244,6 +252,7 @@ void sfmlVisualization::Visualizer::visualize()
 		playButton.draw(this->window);
 		volume.draw(this->window);
 		musicTime.draw(this->window);
+		listBoxMeta.draw(this->window);
 		this->window.display();
 	}
 }

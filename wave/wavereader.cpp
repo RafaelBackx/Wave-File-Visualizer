@@ -93,7 +93,7 @@ void wave::WaveReader::read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& 
 			}
 			input.seekg(offset-1, input.beg);
 			// Add this listfield to list of listfields in wavereader
-			this->metaData.push_back(listfield);
+			this->list.listFields.push_back(listfield);
 			// remove the size of this listfield from the data.subchunk2size so the loop will end
 			generalheader.subChunkSize -= (listfield.listFieldSize); // remove the size of the actual list data
 			generalheader.subChunkSize -= sizeof(uint32_t); // remove the size of the bytes that hold the size data
@@ -134,13 +134,13 @@ std::vector<int> wave::WaveReader::reduceSamples(int factor)
 void wave::WaveReader::read(std::string filename)
 {
 	// To prevent memory leaks we first need to clear meta data stored in dumb pointers from a possible previous song
-	if (this->metaData.size()>0)
+	if (this->list.listFields.size()>0)
 	{
-		for (ListField field : this->metaData)
+		for (ListField field : this->list.listFields)
 		{
 			delete[] field.listFieldValue;
 		}
-		this->metaData.clear();
+		this->list.listFields.clear();
 	}
 	std::ifstream file(filename, std::ios::binary);
 	//read riff chunk
@@ -151,7 +151,7 @@ void wave::WaveReader::read(std::string filename)
 	read_DATACHUNK(file, this->data_chunk, fmt);
 	//this->readSamples(file);
 	std::cout << "Meta Data: " << std::endl;
-	for (ListField listfield : this->metaData)
+	for (ListField listfield : this->getMetaData())
 	{
 		std::cout << listfield.id << " " << std::endl;
 		for (int j=0;j<listfield.listFieldSize;j++)
@@ -221,4 +221,31 @@ void wave::WaveReader::cast(std::vector<int32_t> data)
 {
 	std::vector<int> sample_data(data.begin(), data.end());
 	this->samples = sample_data;
+}
+
+wave::LISTCHUNK::LISTCHUNK()
+{
+	this->listIds.insert(std::pair<std::string, std::string>("IARL", "Archival location"));
+	this->listIds.insert(std::pair<std::string, std::string>("IART", "Artist"));
+	this->listIds.insert(std::pair<std::string, std::string>("ICMS", "Commissioned by"));
+	this->listIds.insert(std::pair<std::string, std::string>("ICMT", "Comments"));
+	this->listIds.insert(std::pair<std::string, std::string>("ICOP", "Copyright"));
+	this->listIds.insert(std::pair<std::string, std::string>("ICRD", "Creation date"));
+	this->listIds.insert(std::pair<std::string, std::string>("ICRP", "Cropped"));
+	this->listIds.insert(std::pair<std::string, std::string>("IDIM", "Dimensions"));
+	this->listIds.insert(std::pair<std::string, std::string>("IDPI", "Dots per inch"));
+	this->listIds.insert(std::pair<std::string, std::string>("IENG", "Engineer"));
+	this->listIds.insert(std::pair<std::string, std::string>("IGNR", "Genre"));
+	this->listIds.insert(std::pair<std::string, std::string>("IKEY", "Keywords"));
+	this->listIds.insert(std::pair<std::string, std::string>("ILGT", "Lightness"));
+	this->listIds.insert(std::pair<std::string, std::string>("IMED", "Medium"));
+	this->listIds.insert(std::pair<std::string, std::string>("INAM", "Name"));
+	this->listIds.insert(std::pair<std::string, std::string>("IPLT", "Palette"));
+	this->listIds.insert(std::pair<std::string, std::string>("IPRD", "Product"));
+	this->listIds.insert(std::pair<std::string, std::string>("ISBJ", "Subject"));
+	this->listIds.insert(std::pair<std::string, std::string>("ISFT", "Software"));
+	this->listIds.insert(std::pair<std::string, std::string>("ISHP", "Sharpness"));
+	this->listIds.insert(std::pair<std::string, std::string>("ISRC", "Source Form"));
+	this->listIds.insert(std::pair<std::string, std::string>("ITCH", "Technician"));
+	//this->listIds.insert("IART", "VUILE JOOD");
 }

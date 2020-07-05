@@ -10,7 +10,7 @@
 #pragma comment (lib,"shell32")
 int main()
 {
-	std::string musicFile = "D:\\Andere\\c++\\wave_files\\music.wav";
+	std::string musicFile = "D:\\Andere\\c++\\wave_files\\nana.wav";
 	/*wave::WaveReader waveReader;
 	waveReader.read(musicFile);
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
@@ -25,9 +25,11 @@ int main()
 		return -1;
 	}*/
 
-	sf::RenderWindow window;
+	/*sf::RenderWindow window;
 	window.create(sf::VideoMode(500, 500), "Test");
-	gui::ListBox listbox(200, 300);
+	gui::ListBox listbox(0, 0);
+	listbox.getShape().setOutlineColor(sf::Color::Black);
+	listbox.getShape().setOutlineThickness(2);
 	gui::ListItem item("test 1", 200, 50);
 	item.setColor(sf::Color::Color(150, 150, 150,240));
 	gui::ListItem item2("test 2", 200, 50);
@@ -41,7 +43,7 @@ int main()
 	listbox.addItem(&item3);
 	listbox.addItem(&item4);
 	listbox.setPosition(100, 100);
-	listbox.setColor(sf::Color::Color(200, 200, 200,255));
+	listbox.setColor(sf::Color::Transparent);
 	while(window.isOpen())
 	{
 		sf::Event event;
@@ -55,10 +57,10 @@ int main()
 		window.clear(sf::Color::White);
 		listbox.draw(window);
 		window.display();
-	}
+	}*/
 
-	//sfmlVisualization::Visualizer vis(musicFile, 300, 500);
-	//vis.showMenu();
+	sfmlVisualization::Visualizer vis(musicFile, 300, 500);
+	vis.showMenu();
 
 	//sfmlVisualization::visualize(waveReader,&music);
 

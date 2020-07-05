@@ -7,6 +7,7 @@
 #include <string>
 #include "..//util/position.h"
 #include <variant>
+#include <map>
 
 namespace wave
 {
@@ -38,6 +39,14 @@ namespace wave
 		uint32_t listFieldSize;
 		char* listFieldValue;
 		//std::shared_ptr<char[]> listFieldValue;
+		std::string getId() { return std::string(id, 4); }
+		std::string getValue() { return std::string(listFieldValue, listFieldSize-1); } // -1 because the last character in the array is an null terminating character
+	};
+	struct LISTCHUNK
+	{
+		std::vector<ListField> listFields;
+		std::map<std::string, std::string> listIds;
+		LISTCHUNK();
 	};
 	
 	class WaveReader
@@ -45,14 +54,15 @@ namespace wave
 	private:
 		std::variant <std::vector<uint8_t>, std::vector<int16_t>, std::vector<int32_t>> variant;
 		std::vector<int> samples;
-		std::vector<ListField> metaData;
 	public:
 		RIFFCHUNK riff;
 		FMTCHUNK fmt;
 		GENERALHEADER data_chunk;
+		LISTCHUNK list;
 		void read(std::string filepath);
 		std::vector<int>& getSamples() { return this->samples; }
 		std::vector<int> reduceSamples(int factor = 100);
+		std::vector<ListField>& getMetaData() { return this->list.listFields; }
 		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); //TODO implement
 	private:
 
