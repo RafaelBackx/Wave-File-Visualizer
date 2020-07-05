@@ -4,9 +4,9 @@
 #include <fstream>
 
 
-std::string wave::WaveReader::getDataChunkID(wave::DATACHUNK& data)
+std::string wave::WaveReader::getDataChunkID(wave::GENERALHEADER& data)
 {
-	std::string s(data.subChunk2ID, 4);
+	std::string s(data.subChunkID, 4);
 	return s;
 }
 
@@ -19,23 +19,88 @@ void wave::WaveReader::read_FMTCHUNK(std::istream& input, wave::FMTCHUNK& fmt)
 {
 	input.read(reinterpret_cast<char*>(&fmt), sizeof(wave::FMTCHUNK));
 }
-void wave::WaveReader::read_DATACHUNK(std::istream& input, wave::DATACHUNK& data, wave::FMTCHUNK& fmt)
+void wave::WaveReader::read_DATACHUNK(std::istream& input, wave::GENERALHEADER& data, wave::FMTCHUNK& fmt)
 {
-	input.read(reinterpret_cast<char*>(&data), sizeof(DATACHUNK));
+	input.read(reinterpret_cast<char*>(&data), sizeof(GENERALHEADER));
+	while(getDataChunkID(data) != "data")
+	{
+		if(getDataChunkID(data) == "LIST")
+		{
+			read_LISTCHUNK(input, data);
+		}
+		else
+		{
+			auto list_data_array = std::make_unique<int8_t[]>(data.subChunkSize);
+			input.read(reinterpret_cast<char*>(list_data_array.get()), sizeof(char) * data.subChunkSize);
+		}
+		input.read(reinterpret_cast<char*>(&data), sizeof(GENERALHEADER));
+	}
 	if (getDataChunkID(data) == "data")
 	{
-		readSamples(input);
+		//std::cout << this->metaData.size();
+		readSamples(input); 
 	}
-	else if(getDataChunkID(data) == "LIST")
+	/*else if(getDataChunkID(data) == "LIST")
 	{
-		auto list_data_array = std::make_unique<int8_t[]>(data.subChunk2Size);
-		input.read(reinterpret_cast<char*>(list_data_array.get()), data.subChunk2Size);
-		wave::DATACHUNK ACTUAL_DATA_HEADER;
-		input.read(reinterpret_cast<char*>(&ACTUAL_DATA_HEADER), sizeof(wave::DATACHUNK));
+		read_LISTCHUNK(input, data);
+		wave::GENERALHEADER ACTUAL_DATA_HEADER;
+		input.read(reinterpret_cast<char*>(&ACTUAL_DATA_HEADER), sizeof(wave::GENERALHEADER));
 		data = ACTUAL_DATA_HEADER;
-		readSamples(input);
+		if (getDataChunkID(ACTUAL_DATA_HEADER) == "data")
+		{
+			readSamples(input);
+		}
+		else
+		{
+			std::cout << "Malformed wave file: the data block is not where it is supposed to be" << std::endl;
+		}
+	}*/
+ 	std::cout << "data bytes: " << data.subChunkSize << std::endl;
+}
+
+void wave::WaveReader::read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& generalheader)
+{
+	//auto list_data_array = std::make_unique<char[]>(generalheader.subChunkSize);
+	//input.read(reinterpret_cast<char*>(list_data_array.get()), sizeof(char) * generalheader.subChunkSize);
+	char info[4];
+	input.read(info, sizeof(char) * 4);
+	std::string infoString(info, 4);
+	if (infoString == "INFO")
+	{
+		generalheader.subChunkSize -= sizeof(char) * 4; // remove the size of the "INFO"
+		//generalheader.subChunkSize -= sizeof(uint32_t); // remove the size of the bytes that hold the size
+		while (generalheader.subChunkSize)
+		{
+			int nullterminationChar = 0;
+			ListField listfield;
+			// Read the name of the listfield
+			input.read(reinterpret_cast<char*>(&listfield.id), 4 * sizeof(char));
+			// Read the size of this listfield
+			input.read(reinterpret_cast<char*>(&listfield.listFieldSize), sizeof(uint32_t));
+			// Read the data of this listfield
+			int size = sizeof(uint32_t) + (sizeof(char) * 4) + (listfield.listFieldSize);
+			//if (!(generalheader.subChunkSize - size)) nullterminationChar = 0;
+			//listfield.listFieldValue = std::make_shared<char[]>(listfield.listFieldSize);
+			listfield.listFieldValue = new char[listfield.listFieldSize];
+			input.read(listfield.listFieldValue, sizeof(char) * (listfield.listFieldSize));
+			char data = input.get();
+			int offset = input.tellg();
+			while(data == '\0')
+			{
+				data = input.get();
+				offset = input.tellg();
+				--generalheader.subChunkSize;
+			}
+			input.seekg(offset-1, input.beg);
+			// Add this listfield to list of listfields in wavereader
+			this->metaData.push_back(listfield);
+			// remove the size of this listfield from the data.subchunk2size so the loop will end
+			generalheader.subChunkSize -= (listfield.listFieldSize); // remove the size of the actual list data
+			generalheader.subChunkSize -= sizeof(uint32_t); // remove the size of the bytes that hold the size data
+			generalheader.subChunkSize -= sizeof(char) * 4; // remove the size of the bytes that hold the id of the listfield
+			std::cout << generalheader.subChunkSize << std::endl;
+		}
 	}
- 	std::cout << data.subChunk2Size << std::endl;
 }
 
 std::vector<int> wave::WaveReader::reduceSamples(int factor)
@@ -68,6 +133,15 @@ std::vector<int> wave::WaveReader::reduceSamples(int factor)
 
 void wave::WaveReader::read(std::string filename)
 {
+	// To prevent memory leaks we first need to clear meta data stored in dumb pointers from a possible previous song
+	if (this->metaData.size()>0)
+	{
+		for (ListField field : this->metaData)
+		{
+			delete[] field.listFieldValue;
+		}
+		this->metaData.clear();
+	}
 	std::ifstream file(filename, std::ios::binary);
 	//read riff chunk
 	read_RIFFCHUNK(file, this->riff);
@@ -76,6 +150,16 @@ void wave::WaveReader::read(std::string filename)
 	//read data chunk, fills data object
 	read_DATACHUNK(file, this->data_chunk, fmt);
 	//this->readSamples(file);
+	std::cout << "Meta Data: " << std::endl;
+	for (ListField listfield : this->metaData)
+	{
+		std::cout << listfield.id << " " << std::endl;
+		for (int j=0;j<listfield.listFieldSize;j++)
+		{
+			std::cout << listfield.listFieldValue[j];
+		}
+		std::cout << std::endl;
+ 	}
 }
 
 void wave::WaveReader::readSamples(std::istream& input)
@@ -103,9 +187,9 @@ void wave::WaveReader::readSamples(std::istream& input)
 template<typename T>
 void wave::WaveReader::readSamples(std::istream& input)
 {
-	int width = this->data_chunk.subChunk2Size / (this->fmt.bitsPerSample / 8);
+	int width = this->data_chunk.subChunkSize / (this->fmt.bitsPerSample / 8);
 	std::vector<T> _samples(width);
-	input.read(reinterpret_cast<char*>(&_samples[0]), this->data_chunk.subChunk2Size);
+	input.read(reinterpret_cast<char*>(&_samples[0]), this->data_chunk.subChunkSize);
 	this->variant = _samples;
 	switch (this->variant.index())
 	{

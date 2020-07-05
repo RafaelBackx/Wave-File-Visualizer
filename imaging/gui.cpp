@@ -46,6 +46,11 @@ void gui::Button::onHover(sf::Vector2f mouse)
 	}
 }
 
+void gui::Button::onDrag(sf::Vector2f mouse)
+{
+	
+}
+
 void gui::Button::useClickFunction()
 {
 	switch (this->functions.index())
@@ -70,10 +75,19 @@ void gui::Button::useClickFunction()
 void gui::Slider::onClick(sf::Vector2f mouse)
 {
 	auto boundsCircle = this->circle.getGlobalBounds();
-	auto boundsLine = this->line.getGlobalBounds();
-	if (boundsCircle.contains(mouse) || boundsLine.contains(mouse))
+	auto boundsOuterRect = this->outerRect.getGlobalBounds();
+	if (boundsCircle.contains(mouse) || boundsOuterRect.contains(mouse))
 	{
-		this->circle.move(10.0f, 0.0f);
+		if (mouse.x >= boundsOuterRect.left && mouse.x < boundsOuterRect.left + boundsOuterRect.width)
+		{
+			this->circle.setPosition(sf::Vector2f(mouse.x, this->circle.getPosition().y));
+			float cx = this->circle.getPosition().x;
+			float value = cx - boundsOuterRect.left;
+			this->value = ((value / (boundsOuterRect.width)) * maxValue + minValue);
+			sf::Vector2f innerRectSize(cx - boundsOuterRect.left,this->innerRect.getSize().y);
+			this->innerRect.setSize(innerRectSize);
+			this->useClickFunction();
+		}
 		//std::cout << "clicked" << mouse.x << " " << mouse.y << std::endl;
 	}
 }
@@ -88,16 +102,140 @@ void gui::Slider::onHover(sf::Vector2f mouse)
 	//}
 }
 
+void gui::Slider::onDrag(sf::Vector2f mouse)
+{
+	auto boundsCircle = this->circle.getGlobalBounds();
+	auto boundsOuterRect = this->outerRect.getGlobalBounds();
+	if (boundsCircle.contains(mouse) || boundsOuterRect.contains(mouse))
+	{
+		if (mouse.x >= boundsOuterRect.left && mouse.x < boundsOuterRect.left+boundsOuterRect.width)
+		{
+			this->circle.setPosition(sf::Vector2f(mouse.x, this->circle.getPosition().y));
+			float cx = this->circle.getPosition().x;
+			float value = cx - boundsOuterRect.left;
+			this->value = ((value/(boundsOuterRect.width))*maxValue + minValue);
+			sf::Vector2f innerRectSize(cx - boundsOuterRect.left, this->innerRect.getSize().y);
+			this->innerRect.setSize(innerRectSize);
+			this->useDragFunction();
+		}
+		//std::cout << "clicked" << mouse.x << " " << mouse.y << std::endl;
+	}
+}
+
 void gui::Slider::setPosition(sf::Vector2f pos)
 {
-	this->line.setPosition(pos);
+	this->outerRect.setPosition(pos);
+	this->innerRect.setPosition(pos);
 	sf::Vector2f circlePos = pos;
-	circlePos.y += this->line.getSize().y / 2;
+	circlePos.y += this->outerRect.getSize().y / 2;
 	this->circle.setPosition(circlePos);
 }
 
 void gui::Slider::draw(sf::RenderWindow& window)
 {
-	window.draw(this->line);
+	window.draw(this->outerRect);
+	window.draw(this->innerRect);
 	window.draw(this->circle);
+}
+
+void gui::Slider::useDragFunction()
+{
+	switch (this->dragFunctions.index())
+	{
+	case 0:
+	{
+		auto func = std::get<std::function<void()>>(this->dragFunctions);
+		func();
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void gui::Slider::useClickFunction()
+{
+	switch (this->clickFunctions.index())
+	{
+	case 0:
+	{
+		auto func = std::get<std::function<void()>>(this->clickFunctions);
+		func();
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void gui::Slider::setValue(float value)
+{
+	if (value >= minValue && value <= maxValue)
+	{
+		this->value = value;
+		sf::FloatRect boundsOuterRect = this->outerRect.getGlobalBounds();
+		float circleX = boundsOuterRect.left + (boundsOuterRect.width * ((value-minValue) / maxValue));
+		sf::Vector2f pos(circleX, this->circle.getPosition().y);
+		this->circle.setPosition(pos);
+		sf::Vector2f sizeInnerRect(circleX - boundsOuterRect.left, this->innerRect.getSize().y);
+		this->innerRect.setSize(sizeInnerRect);
+		//useClickFunction();
+	}
+}
+
+void gui::Slider::increment(float value)
+{
+	this->setValue(this->getValue() + value);
+}
+
+void gui::ListItem::setPosition(float x, float y)
+{
+	sf::Vector2f pos(x, y);
+	this->setPosition(pos);
+}
+
+void gui::ListItem::setPosition(sf::Vector2f pos)
+{
+	std::cout << "setting position " << std::endl;
+	this->label.setPosition(pos);
+	auto textBounds = this->text.getLocalBounds();
+	this->text.setOrigin(textBounds.left + (textBounds.width / 2.0f), textBounds.top + (textBounds.height / 2.0f));
+	this->text.setPosition(pos.x + (this->label.getSize().x / 2.0f), pos.y + (this->label.getSize().y / 2.0f));
+}
+
+void gui::ListItem::draw(sf::RenderWindow& window)
+{
+	window.draw(this->label);
+	window.draw(this->text);
+}
+
+void gui::ListBox::setPosition(float x, float y)
+{
+	this->setPosition(sf::Vector2f(x, y));
+}
+
+void gui::ListBox::setPosition(sf::Vector2f pos)
+{
+	this->listBox.setPosition(pos);
+	float x = pos.x, y = pos.y;
+	for (ListItem* item : this->listItems)
+	{
+		std::cout << "x: " << x << " y: " << y << std::endl;
+		item->setPosition(x, y);
+		y += item->getShape().getSize().y;
+	}
+}
+
+void gui::ListBox::addItem(gui::ListItem* item)
+{
+	this->listItems.push_back(item);
+}
+
+void gui::ListBox::draw(sf::RenderWindow& window)
+{
+	window.draw(this->listBox);
+	for (ListItem* item : this->listItems)
+	{
+		item->draw(window);
+	}
 }

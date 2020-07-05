@@ -27,10 +27,17 @@ namespace wave
 		uint16_t block_align; // the number of bytes for one sample including all channels. // LITTLE ENDIAN
 		uint16_t bitsPerSample; // LITTLE ENDIAN
 	};
-	struct DATACHUNK
+	struct GENERALHEADER
 	{
-		char subChunk2ID[4]; // should be equal to data; BIG ENDIAN
-		uint32_t subChunk2Size; // this is the number of bytes in the data, you can also think of this als the size of the read of the subchunk following this number; LITTLE ENDIAN
+		char subChunkID[4]; // should be equal to data; BIG ENDIAN
+		uint32_t subChunkSize; // this is the number of bytes in the data, you can also think of this als the size of the read of the subchunk following this number; LITTLE ENDIAN
+	};
+	struct ListField
+	{
+		char id[4]; // Holds the id of the list field e.g INAM,IART,IGNR,...
+		uint32_t listFieldSize;
+		char* listFieldValue;
+		//std::shared_ptr<char[]> listFieldValue;
 	};
 	
 	class WaveReader
@@ -38,23 +45,25 @@ namespace wave
 	private:
 		std::variant <std::vector<uint8_t>, std::vector<int16_t>, std::vector<int32_t>> variant;
 		std::vector<int> samples;
+		std::vector<ListField> metaData;
 	public:
 		RIFFCHUNK riff;
 		FMTCHUNK fmt;
-		DATACHUNK data_chunk;
+		GENERALHEADER data_chunk;
 		void read(std::string filepath);
 		std::vector<int>& getSamples() { return this->samples; }
-		std::vector<int> reduceSamples(int factor = 100); //TODO implement
+		std::vector<int> reduceSamples(int factor = 100);
 		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); //TODO implement
 	private:
 
 		void readSamples(std::istream& input);
 		template<typename T>
 		void readSamples(std::istream& input);
-		std::string getDataChunkID(DATACHUNK& data);
+		std::string getDataChunkID(GENERALHEADER& data);
 		void read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff);
 		void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
-		void read_DATACHUNK(std::istream& input, DATACHUNK& data, FMTCHUNK& fmt);
+		void read_DATACHUNK(std::istream& input, GENERALHEADER& data, FMTCHUNK& fmt);
+		void read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& generalheader);
 		void cast(std::vector<uint8_t> data);
 		void cast(std::vector<int16_t> data);
 		void cast(std::vector<int32_t> data);

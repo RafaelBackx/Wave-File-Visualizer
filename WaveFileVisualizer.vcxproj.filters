@@ -100,5 +100,8 @@
     <Image Include="sprites\stop.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="sprites\blue.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

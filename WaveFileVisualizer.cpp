@@ -10,7 +10,7 @@
 #pragma comment (lib,"shell32")
 int main()
 {
-	std::string musicFile = "D:\\Andere\\c++\\wave_files\\rasputin.wav";
+	std::string musicFile = "D:\\Andere\\c++\\wave_files\\music.wav";
 	/*wave::WaveReader waveReader;
 	waveReader.read(musicFile);
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
@@ -26,34 +26,34 @@ int main()
 	}*/
 
 	sf::RenderWindow window;
-	window.create(sf::VideoMode(700, 500),"test");
-	gui::Slider slider(300, 10, 15, 0);
-	slider.setLineColor(sf::Color::Black);
-	slider.setCircleColor(sf::Color::Blue);
-	slider.setPosition(200, 200);
-	gui::Screen screen;
-	screen.addNode(&slider);
-	while (window.isOpen())
+	window.create(sf::VideoMode(500, 500), "Test");
+	gui::ListBox listbox(200, 300);
+	gui::ListItem item("test 1", 200, 50);
+	item.setColor(sf::Color::Color(150, 150, 150,240));
+	gui::ListItem item2("test 2", 200, 50);
+	item2.setColor(sf::Color::Color(150, 150, 150,240));
+	gui::ListItem item3("test 3", 200, 50);
+	item3.setColor(sf::Color::Color(150, 150, 150,240));
+	gui::ListItem item4("test 4", 200, 50);
+	item4.setColor(sf::Color::Color(150, 150, 150,240));
+	listbox.addItem(&item);
+	listbox.addItem(&item2);
+	listbox.addItem(&item3);
+	listbox.addItem(&item4);
+	listbox.setPosition(100, 100);
+	listbox.setColor(sf::Color::Color(200, 200, 200,255));
+	while(window.isOpen())
 	{
 		sf::Event event;
-		while(window.pollEvent(event))
+		while (window.pollEvent(event))
 		{
-			if(event.type == sf::Event::Closed)
+			if (event.type == sf::Event::Closed)
 			{
 				window.close();
 			}
-			if(event.type == sf::Event::MouseButtonPressed)
-			{
-				screen.updateNodesOnClick(sf::Vector2f(event.mouseButton.x, event.mouseButton.y));
-			}
-			if (event.type == sf::Event::MouseMoved)
-			{
-				screen.updateNodesOnHover(sf::Vector2f(event.mouseMove.x, event.mouseMove.y));
-			}
 		}
 		window.clear(sf::Color::White);
-		//draw
-		slider.draw(window);
+		listbox.draw(window);
 		window.display();
 	}
 

@@ -123,28 +123,73 @@ void sfmlVisualization::Visualizer::visualize()
 	this->window.setFramerateLimit(frameRate); // change in the future probably
 	sf::Color color = sf::Color::Red;
 	//music.setPlayingOffset(sf::Time(sf::microseconds(240000000)));
-	music.play();
 	sf::Image img;
 	this->window.setPosition(sf::Vector2i(25, 25));
 	this->window.setSize(sf::Vector2u(windowWidth, windowHeight+200));
+	sf::Texture play;
+	play.loadFromFile("sprites/play.png");
+	sf::Texture pause;
+	pause.loadFromFile("sprites/pause.png");
 	gui::Button playButton(75, 75, "");
 	sf::View view(sf::FloatRect(0, 0, windowWidth, windowHeight+200));
+	bool playing = true;
 	playButton.setOnClick([&]()
 		{
-			music.play();
+			if (playing)
+			{
+				playButton.setTexture(play);
+				music.pause();
+				playing = false;
+			}
+			else
+			{
+				playButton.setTexture(pause);
+				music.play();
+				playing = true;
+			}
 		});
-	playButton.setTexture("sprites/play.png");
-	playButton.setPosition(sf::Vector2f(windowWidth/2-playButton.getWidth() - spacingBetweenButtons, this->window.getSize().y - ((this->window.getSize().y - windowHeight)/2)-playButton.getHeight()));
-	gui::Button pauseButton(75, 75, "");
-	pauseButton.setOnClick([&]()
+	playButton.setTexture(pause);
+	playButton.setPosition(sf::Vector2f(windowWidth/2 - playButton.getWidth()/2, this->window.getSize().y - ((this->window.getSize().y - windowHeight)/2)-playButton.getHeight()));
+	gui::Slider volume(300, 10, 15);
+	volume.setCircleColor(sf::Color::Color(48,75,194));
+	volume.setInnerRectColor(sf::Color::Color(50, 156, 66));
+	volume.setOuterRectColor(sf::Color::Color(81,82,87));
+	volume.setPosition(sf::Vector2f(windowWidth * 0.75 , this->window.getSize().y - ((this->window.getSize().y - windowHeight) * 0.25) - volume.getHeight()));
+	volume.setOnDrag([&]()
+		{
+			music.setVolume(volume.getValue());
+		});
+	volume.setOnClick([&]()
+		{
+			music.setVolume(volume.getValue());
+			std::cout << "new circle x position: "  << volume.getCircle().getPosition().x << std::endl;
+		});
+	volume.setValue(50.0f);
+	gui::Slider musicTime(400,10,15);
+	musicTime.setCircleColor(sf::Color::Color(48, 75, 194));
+	musicTime.setInnerRectColor(sf::Color::Color(50,156,66));
+	musicTime.setOuterRectColor(sf::Color::Color(81, 82, 87));
+	musicTime.setPosition(sf::Vector2f(windowWidth / 2 - (musicTime.getWidth() / 2) + spacingBetweenButtons, this->window.getSize().y - ((this->window.getSize().y - windowHeight) / 4) - musicTime.getHeight()));
+	musicTime.setMaxValue(music.getDuration().asSeconds());
+	musicTime.setOnClick([&]()
 		{
 			music.pause();
+			sf::Time offset(sf::microseconds(static_cast<uint64_t>(musicTime.getValue()) * 1000000));
+			music.setPlayingOffset(offset);
+			music.play();
 		});
-	pauseButton.setTexture("sprites/pause.png");
-	pauseButton.setPosition(sf::Vector2f(windowWidth / 2 + playButton.getWidth() + spacingBetweenButtons, this->window.getSize().y - ((this->window.getSize().y - windowHeight) / 2) - playButton.getHeight()));
+	musicTime.setOnDrag([&]()
+		{
+			music.pause();
+			sf::Time offset(sf::microseconds(static_cast<uint64_t>(musicTime.getValue()) * 1000000));
+			music.setPlayingOffset(offset);
+			music.play();
+		});
+	bool mouseDown = false;
 	this->screen.addNode(&playButton);
-	this->screen.addNode(&pauseButton);
-	music.setVolume(50.0f);
+	this->screen.addNode(&volume);
+	this->screen.addNode(&musicTime);
+	music.play();
 	while (this->window.isOpen())
 	{
 		sf::Event event;
@@ -154,19 +199,34 @@ void sfmlVisualization::Visualizer::visualize()
 			{
 				this->window.close();
 			}
-			if (event.type == sf::Event::MouseButtonPressed)
+			else if (event.type == sf::Event::MouseButtonPressed)
 			{
+				mouseDown = true;
 				sf::Vector2f mouse(event.mouseButton.x, event.mouseButton.y);
 				this->screen.updateNodesOnClick(mouse);
 			}
-			if (event.type == sf::Event::Resized)
+			else if (event.type == sf::Event::MouseButtonReleased)
+			{
+				mouseDown = false;
+			}
+			else if (event.type == sf::Event::MouseMoved)
+			{
+				if (mouseDown)
+				{
+					this->screen.updateNodesOnDrag(sf::Vector2f(event.mouseMove.x, event.mouseMove.y));
+				}
+				this->screen.updateNodesOnHover(sf::Vector2f(event.mouseMove.x, event.mouseMove.y));
+			}
+			else if (event.type == sf::Event::Resized)
 			{
 				sf::View visibleArea(sf::FloatRect(0, 0, event.size.width, event.size.height));
 				this->window.setView(visibleArea);
 			}
 		}
+		music.setVolume(volume.getValue());
 		if (music.Playing)
 		{
+			musicTime.setValue(music.getPlayingOffset().asSeconds());
 			window.clear(sf::Color::White); // clears the frame with given color
 			offset = this->music.getPlayingOffset().asSeconds() * this->wavereader.fmt.sample_rate;
 			color = getColor(color);
@@ -182,7 +242,8 @@ void sfmlVisualization::Visualizer::visualize()
 			}
 		}
 		playButton.draw(this->window);
-		pauseButton.draw(this->window);
+		volume.draw(this->window);
+		musicTime.draw(this->window);
 		this->window.display();
 	}
 }

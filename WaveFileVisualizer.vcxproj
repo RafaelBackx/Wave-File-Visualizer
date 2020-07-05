@@ -187,6 +187,7 @@
     <ClInclude Include="wave\wave.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="sprites\blue.png" />
     <Image Include="sprites\pause.png" />
     <Image Include="sprites\play.png" />
     <Image Include="sprites\stop.png" />
