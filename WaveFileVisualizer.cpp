@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include "wave/wave.h"
-#include "imaging/bmp-format.h"
 #include "util//position.h"
 #include "imaging/visualization.h"
 #include <cmath>
