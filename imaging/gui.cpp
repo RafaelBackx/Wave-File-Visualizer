@@ -280,3 +280,127 @@ void gui::ListBox::draw(sf::RenderWindow& window)
 		this->listItems[i]->draw(window);
 	}
 }
+
+void gui::TextBox::addText(std::string string)
+{
+	if (focus)
+	{
+		std::string totalText = this->text.getString().toAnsiString();
+		std::string beforeOffset = totalText.substr(0, textOffset);
+		std::string afterOffset = totalText.substr(textOffset, totalText.length() - textOffset);
+		std::string newText = beforeOffset + string + afterOffset;
+		this->text.setString(newText);
+		auto bounds = this->text.getLocalBounds();
+		sf::Vector2f newSize(bounds.width + padding * 2, bounds.height + padding * 2);
+		this->box.setSize(this->checkSize(newSize));
+		++textOffset;
+	}
+}
+
+void gui::TextBox::clear()
+{
+	this->text.setString("");
+	auto bounds = this->text.getLocalBounds();
+	this->box.setSize(sf::Vector2f(bounds.width,bounds.height));
+}
+
+void gui::TextBox::setPosition(float x, float y)
+{
+	this->setPosition(sf::Vector2f(x, y));
+}
+
+void gui::TextBox::setPosition(sf::Vector2f pos)
+{
+	this->box.setPosition(pos);
+	this->text.setPosition(pos);
+}
+
+void gui::TextBox::draw(sf::RenderWindow& window)
+{
+	window.draw(this->box);
+	window.draw(this->text);
+}
+
+void gui::TextBox::setString(std::string text)
+{
+	this->text.setString(text);
+	auto bounds = this->text.getLocalBounds();
+	sf::Vector2f newSize(bounds.width + padding * 2, bounds.height + padding * 2);
+	this->box.setSize(this->checkSize(newSize));
+}
+
+void gui::TextBox::setPadding(float padding)
+{
+	auto pos = this->text.getPosition();
+	this->text.setPosition(pos.x + padding, pos.y + padding);
+	this->padding = padding;
+	auto bounds = this->text.getLocalBounds();
+	sf::Vector2f newSize(bounds.width + (padding * 2), bounds.height + (padding * 2));
+	this->box.setSize(this->checkSize(newSize));
+}
+
+void gui::TextBox::removeLastChar()
+{
+	if (focus)
+	{
+		std::string text = this->text.getString().toAnsiString();
+		if (textOffset >0)
+		{
+			std::string beforeOffset = text.substr(0, textOffset - 1);
+			std::string afterOffset = text.substr(textOffset, text.length() - textOffset);
+			this->setString(beforeOffset + afterOffset);
+			--textOffset;
+		}
+	}
+}
+
+void gui::TextBox::onClick(sf::Vector2f mouse)
+{
+	auto bounds = this->box.getGlobalBounds();
+	if (bounds.contains(sf::Vector2f(mouse.x, (mouse.y))))
+	{
+		this->focus = true;
+		useClickFunction();
+	}
+}
+
+void gui::TextBox::useClickFunction()
+{
+	switch (this->clickFunctions.index())
+	{
+	case 0:
+	{
+		auto func = std::get<std::function<void()>>(this->clickFunctions);
+		func();
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+sf::Vector2f gui::TextBox::checkSize(sf::Vector2f newSize)
+{
+	if (newSize.x < this->defaultSize.x && newSize.y < this->defaultSize.y)
+	{
+		return defaultSize;
+	}
+	else
+	{
+		return newSize;
+	}
+}
+
+void gui::TextBox::setTextOffset(int offset)
+{
+	std::cout << "length: " << this->getText().length() << "offset: " << offset << std::endl;
+	if (offset == -1) 
+	{
+		std::cout<< "wtf man" << std::endl;
+	}
+	int length = this->getText().length();
+	if (offset > 0 && offset < length)
+	{
+		this->textOffset = offset;
+	}
+}

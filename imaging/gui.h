@@ -213,6 +213,59 @@ namespace gui
 		sf::Vector2f getSize() const { return this->listBox.getSize(); }
 	};
 
+	class TextBox : public Node
+	{
+	private:
+		sf::Text text;
+		sf::RectangleShape box;
+		sf::Font font;
+		sf::Vector2f defaultSize;
+		float padding = 2.0f;
+		bool focus = false;
+		std::variant<std::function<void()>> clickFunctions;
+		int textOffset = 0;
+	public:
+		TextBox(float width, float height) : defaultSize(width,height), box(defaultSize) 
+		{
+			this->font.loadFromFile("sprites/arial.ttf");
+			this->text.setFont(this->font);
+			this->text.setCharacterSize(21);
+			this->text.setFillColor(sf::Color::Black);
+			this->setString("");
+		}
+		void addText(std::string text);
+		void setColor(sf::Color color) { this->box.setFillColor(color); }
+		void setBorderColor(sf::Color color) { this->box.setOutlineColor(color); }
+		void setBorderWidth(float width) { this->box.setOutlineThickness(width); }
+		void setTextColor(sf::Color color) { this->text.setFillColor(color); }
+		void clear();
+		void setPosition(float x, float y);
+		void setPosition(sf::Vector2f pos);
+		void draw(sf::RenderWindow& window);
+		void removeLastChar();
+		void setString(std::string);
+		void setPadding(float padding);
+		void setFocus(bool focus) { this->focus = focus; }
+		void setOnClick(std::function<void()> func) { this->clickFunctions = func; }
+		void setTextOffset(int offset);
+		void decrementTextOffset() { this->setTextOffset(textOffset-1); }
+		void incrementTextOffset() { this->setTextOffset(textOffset+1); }
+		void useClickFunction();
+
+		float getWidth() { return this->box.getSize().x; }
+		float getHeight() { return this->box.getSize().y; }
+		sf::RectangleShape getShape() { return this->box; }
+		sf::Text getSFMLText() { return this->text; }
+		std::string getText() { return this->text.getString().toAnsiString(); }
+		int getTextOffset() const { return this->textOffset; }
+
+		void onClick(sf::Vector2f mouse) override;
+		void onHover(sf::Vector2f mouse) override {};
+		void onDrag(sf::Vector2f mouse) override {};
+	private:
+		sf::Vector2f checkSize(sf::Vector2f newSize);
+	};
+
 	class Screen
 	{
 	private:

@@ -18,19 +18,14 @@ namespace sfmlVisualization
 		std::string filename;
 		gui::Screen screen;
 	public:
-		Visualizer(std::string filename, int windowWidth, int windowHeight) :screen(), filename(filename), window(), wavereader(), music() 
+		Visualizer(int windowWidth, int windowHeight) :screen(), window(), wavereader(), music() 
 		{
-			wavereader.read(filename);
-			if (!music.openFromFile(filename))
-			{
-				std::cout << "Cannot open music file! " << std::endl;
-			}
 			window.create(sf::VideoMode(windowWidth, windowHeight), "Visualizer", sf::Style::Titlebar | sf::Style::Close);
 		}
 		void showMenu();
-		void visualize();
+		void visualize(std::string filename);
 	};
 	//void chooseFile(); // TODO implement, Look for api with windows file explorer functionality
-	void visualize(wave::WaveReader& wavereader, sf::Music* music);
+	//void visualize(wave::WaveReader& wavereader, sf::Music* music);
 }
 #endif

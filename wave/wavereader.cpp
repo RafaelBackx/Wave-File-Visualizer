@@ -143,6 +143,11 @@ void wave::WaveReader::read(std::string filename)
 		this->list.listFields.clear();
 	}
 	std::ifstream file(filename, std::ios::binary);
+	if (!file.is_open())
+	{
+		std::cout << "wrong filename" << std::endl;
+		return;
+	}
 	//read riff chunk
 	read_RIFFCHUNK(file, this->riff);
 	//read fmt chunk

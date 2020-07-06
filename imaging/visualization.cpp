@@ -40,14 +40,23 @@ void getMinMax(const std::vector<int> samples, double* min, double* max)
 void sfmlVisualization::Visualizer::showMenu()
 {
 	sf::Event event;
+	gui::TextBox textbox(200, 50);
+	textbox.setPosition((this->window.getSize().x / 2) - (textbox.getWidth()/2), 100);
+	textbox.setOnClick([&]()
+		{
+			
+		});
+	textbox.setBorderWidth(1.0f);
+	textbox.setBorderColor(sf::Color::Black);
 	gui::Button start(100, 30, "start visulisation");
-	start.setPosition(sf::Vector2f((this->window.getSize().x/2)-(start.getWidth()/2), 100));
-	sf::RenderWindow* window = &this->window;
+	start.setPosition(sf::Vector2f((this->window.getSize().x / 2) - (start.getWidth() / 2), 250));
 	start.setOnClick([&]()
-	{
-		//this->window.close();
-		this->visualize();
-	});
+		{
+			this->visualize(textbox.getText());
+		});
+	sf::Clipboard clipboard;
+	bool ctrlDown=false;
+	this->screen.addNode(&textbox);
 	this->screen.addNode(&start);
 	while (this->window.isOpen())
 	{
@@ -70,6 +79,49 @@ void sfmlVisualization::Visualizer::showMenu()
 				this->screen.updateNodesOnHover(mouse);
 				break;
 			}
+			case sf::Event::TextEntered:
+			{
+				std::cout << event.text.unicode << std::endl;
+				if (event.text.unicode < 128)
+				{
+					if (event.text.unicode == 8)
+					{
+						textbox.removeLastChar();
+					}
+					else if(event.text.unicode == 22 && ctrlDown) // check for control paste
+					{
+						textbox.setString(clipboard.getString().toAnsiString());
+					}
+					else if (event.text.unicode == 3 && ctrlDown) // check for control copy
+					{
+						clipboard.setString(textbox.getText());
+					}
+					else
+					{
+						char t = static_cast<char>(event.text.unicode);
+						textbox.addText(std::string(1, t));
+						int index = textbox.getText().length() - 1;
+						if (textbox.getSFMLText().findCharacterPos(index).x > this->window.getSize().x - 50)
+						{
+							textbox.addText(std::string("\n"));
+						}
+					}
+				}
+			}
+			case sf::Event::KeyPressed:
+			{
+				if (event.key.code == 71)//Left arrow key
+				{
+					textbox.decrementTextOffset();
+				}
+				else if (event.key.code == 72)//Right arrow key
+				{
+					textbox.incrementTextOffset();
+				}
+				ctrlDown = event.key.control;
+			}
+			case sf::Event::KeyReleased:
+				ctrlDown = event.key.control;
 			default:
 				break;
 			}
@@ -77,6 +129,7 @@ void sfmlVisualization::Visualizer::showMenu()
 			this->window.clear(sf::Color::White);
 			//Draw
 			start.draw(this->window);
+			textbox.draw(this->window);
 			//Display
 			this->window.display();
 		}
@@ -104,8 +157,13 @@ sf::Color getColor(sf::Color c)
 	return sf::Color(r, g, b);
 }
 
-void sfmlVisualization::Visualizer::visualize()
+void sfmlVisualization::Visualizer::visualize(std::string filename)
 {
+	this->wavereader.read(filename);
+	if (!music.openFromFile(filename))
+	{
+		std::cout << "Cannot open music file" << std::endl;
+	}
 	const int channelMask = getMask(this->wavereader.fmt.bitsPerSample);
 	double max = pow(2, this->wavereader.fmt.bitsPerSample);
 	int windowWidth = 1500, windowHeight = 700;

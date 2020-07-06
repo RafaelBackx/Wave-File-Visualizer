@@ -6,10 +6,9 @@
 #include "util//position.h"
 #include "imaging/visualization.h"
 #include <cmath>
-#pragma comment (lib,"shell32")
 int main()
 {
-	std::string musicFile = "D:\\Andere\\c++\\wave_files\\nana.wav";
+	//std::string musicFile = "D:\\Andere\\c++\\wave_files\\bab.wav";
 	/*wave::WaveReader waveReader;
 	waveReader.read(musicFile);
 	std::cout << "number of channels: " << waveReader.fmt.numChannels << std::endl;
@@ -24,41 +23,76 @@ int main()
 		return -1;
 	}*/
 
-	/*sf::RenderWindow window;
-	window.create(sf::VideoMode(500, 500), "Test");
-	gui::ListBox listbox(0, 0);
-	listbox.getShape().setOutlineColor(sf::Color::Black);
-	listbox.getShape().setOutlineThickness(2);
-	gui::ListItem item("test 1", 200, 50);
-	item.setColor(sf::Color::Color(150, 150, 150,240));
-	gui::ListItem item2("test 2", 200, 50);
-	item2.setColor(sf::Color::Color(150, 150, 150,240));
-	gui::ListItem item3("test 3", 200, 50);
-	item3.setColor(sf::Color::Color(150, 150, 150,240));
-	gui::ListItem item4("test 4", 200, 50);
-	item4.setColor(sf::Color::Color(150, 150, 150,240));
-	listbox.addItem(&item);
-	listbox.addItem(&item2);
-	listbox.addItem(&item3);
-	listbox.addItem(&item4);
-	listbox.setPosition(100, 100);
-	listbox.setColor(sf::Color::Transparent);
-	while(window.isOpen())
-	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-			{
-				window.close();
-			}
-		}
-		window.clear(sf::Color::White);
-		listbox.draw(window);
-		window.display();
-	}*/
+	//sf::RenderWindow window;
+	//window.create(sf::VideoMode(500, 500), "Test");
+	//gui::TextBox textbox(200, 50);
+	//textbox.setBorderColor(sf::Color::Black);
+	//textbox.setBorderWidth(2.0f);
+	//textbox.setColor(sf::Color::Color(150, 150, 150));
+	//textbox.setPadding(10.0f);
+	//textbox.setOnClick([&]()
+	//	{
+	//		std::cout << "wajow gij bent gay" << std::endl;
+	//	});
+	//gui::Screen screen;
+	//screen.addNode(&textbox);
+	//sf::Clipboard clipboard;
+	//bool ctrlDown = false;
+	//while(window.isOpen())
+	//{
+	//	sf::Event event;
+	//	while (window.pollEvent(event))
+	//	{
+	//		if (event.type == sf::Event::Closed)
+	//		{
+	//			window.close();
+	//		}
+	//		else if (event.type == sf::Event::KeyPressed)
+	//		{
+	//			ctrlDown = event.key.control;
+	//		}
+	//		else if(event.type == sf::Event::KeyReleased)
+	//		{
+	//			ctrlDown = event.key.control;
+	//		}
+	//		else if (event.type == sf::Event::TextEntered)
+	//		{
+	//			std::cout << event.text.unicode << std::endl;
+	//			if (event.text.unicode < 128)
+	//			{
+	//				if (event.text.unicode == 8)
+	//				{
+	//					textbox.removeLastChar();
+	//				}
+	//				else if(event.text.unicode == 22 && ctrlDown) // check for control paste
+	//				{
+	//					std::cout << "pasting " << clipboard.getString().toAnsiString() << std::endl;
+	//					textbox.setString(clipboard.getString().toAnsiString());
+	//				}
+	//				else if (event.text.unicode == 3 && ctrlDown) // check for control copy
+	//				{
+	//					std::cout << "copying" << textbox.getText() << std::endl;
+	//					clipboard.setString(textbox.getText());
+	//				}
+	//				else
+	//				{
+	//					char t = static_cast<char>(event.text.unicode);
+	//					textbox.addText(std::string(1, t));
+	//				}
+	//			}
+	//		}
+	//		else if(event.type == sf::Event::MouseButtonPressed)
+	//		{
+	//			sf::Vector2f mouse(event.mouseButton.x, event.mouseButton.y);
+	//			screen.updateNodesOnClick(mouse);
+	//		}
+	//	}
+	//	window.clear(sf::Color::White);
+	//	textbox.draw(window);
+	//	window.display();
+	//}
 
-	sfmlVisualization::Visualizer vis(musicFile, 300, 500);
+	sfmlVisualization::Visualizer vis(300, 500);
 	vis.showMenu();
 
 	//sfmlVisualization::visualize(waveReader,&music);
