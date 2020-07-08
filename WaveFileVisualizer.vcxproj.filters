@@ -47,6 +47,9 @@
     <ClInclude Include="imaging\gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="util\portable-file-dialogs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="sprites\pause.png">
@@ -61,5 +64,8 @@
     <Image Include="sprites\blue.png">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="sprites\arial.ttf" />
   </ItemGroup>
 </Project>

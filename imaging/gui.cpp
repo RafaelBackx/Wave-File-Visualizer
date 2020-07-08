@@ -196,7 +196,6 @@ void gui::ListItem::setPosition(float x, float y)
 
 void gui::ListItem::setPosition(sf::Vector2f pos)
 {
-	std::cout << "setting position " << std::endl;
 	this->label.setPosition(pos);
 	auto textBounds = this->text.getLocalBounds();
 	this->text.setOrigin(textBounds.left + (textBounds.width / 2.0f), textBounds.top + (textBounds.height / 2.0f));
@@ -227,7 +226,6 @@ void gui::ListItem::setPadding(float padding)
 	this->padding = padding;
 	sf::Vector2f size = this->label.getSize();
 	this->label.setSize(sf::Vector2f(size.x + padding, size.y+padding));
-	//this->text.setPosition(this->text.getPosition().x + padding, this->text.getPosition().y - padding);
 }
 
 void gui::ListBox::setPosition(float x, float y)
@@ -241,7 +239,6 @@ void gui::ListBox::setPosition(sf::Vector2f pos)
 	float x = pos.x, y = pos.y;
 	for (int i = 0; i < this->listItems.size(); i++)
 	{
-		std::cout << "x: " << x << " y: " << y << std::endl;
 		this->listItems[i]->setPosition(x, y);
 		y += this->listItems[i]->getShape().getSize().y;
 	}
@@ -285,7 +282,7 @@ void gui::TextBox::addText(std::string string)
 {
 	if (focus)
 	{
-		std::string totalText = this->text.getString().toAnsiString();
+		std::string totalText = this->getText();
 		std::string beforeOffset = totalText.substr(0, textOffset);
 		std::string afterOffset = totalText.substr(textOffset, totalText.length() - textOffset);
 		std::string newText = beforeOffset + string + afterOffset;
@@ -293,7 +290,7 @@ void gui::TextBox::addText(std::string string)
 		auto bounds = this->text.getLocalBounds();
 		sf::Vector2f newSize(bounds.width + padding * 2, bounds.height + padding * 2);
 		this->box.setSize(this->checkSize(newSize));
-		++textOffset;
+		this->setTextOffset(textOffset + 1);
 	}
 }
 
@@ -319,6 +316,15 @@ void gui::TextBox::draw(sf::RenderWindow& window)
 {
 	window.draw(this->box);
 	window.draw(this->text);
+	float mSeconds = this->clock.getElapsedTime().asSeconds();
+	if (this->pointer.size()>0 && mSeconds<1) // draw the line for 1 second
+	{
+		window.draw(&this->pointer[0], 2, sf::Lines);
+	}
+	else if (mSeconds >1.5) // when it passes 1,5 seconds restart the clock
+	{
+		clock.restart();
+	}
 }
 
 void gui::TextBox::setString(std::string text)
@@ -343,13 +349,13 @@ void gui::TextBox::removeLastChar()
 {
 	if (focus)
 	{
-		std::string text = this->text.getString().toAnsiString();
+		std::string text = this->getText();
 		if (textOffset >0)
 		{
 			std::string beforeOffset = text.substr(0, textOffset - 1);
 			std::string afterOffset = text.substr(textOffset, text.length() - textOffset);
 			this->setString(beforeOffset + afterOffset);
-			--textOffset;
+			this->decrementTextOffset();
 		}
 	}
 }
@@ -393,14 +399,74 @@ sf::Vector2f gui::TextBox::checkSize(sf::Vector2f newSize)
 
 void gui::TextBox::setTextOffset(int offset)
 {
-	std::cout << "length: " << this->getText().length() << "offset: " << offset << std::endl;
-	if (offset == -1) 
-	{
-		std::cout<< "wtf man" << std::endl;
-	}
 	int length = this->getText().length();
-	if (offset > 0 && offset < length)
+	if (offset >= 0 && offset <= length)
 	{
+		std::cout << "offset: " << offset << " length: " << length << std::endl;
 		this->textOffset = offset;
+		sf::Vector2f pos;
+		int width = 15;
+		if (this->getText().length() > 0)
+		{
+			pos = this->text.findCharacterPos(offset);
+			//width = this->text.getLocalBounds().width / this->getText().length();
+		}
+		else
+		{
+			pos = sf::Vector2f(this->box.getGlobalBounds().left, this->box.getGlobalBounds().top);
+		}
+		this->pointer.clear();
+		this->pointer.push_back(sf::Vertex(sf::Vector2(pos.x, pos.y + this->text.getCharacterSize()), sf::Color::Black));
+		this->pointer.push_back(sf::Vertex(sf::Vector2(pos.x + width, pos.y + this->text.getCharacterSize()), sf::Color::Black));
+		std::cout << pos.x << " " << pos.y << std::endl;
+		std::cout << pos.x + width << " " << pos.y << std::endl;
+	}
+}
+
+void gui::TextBox::handleEvent(sf::Event event, sf::RenderWindow& window)
+{
+	if (event.type == sf::Event::TextEntered)
+	{
+		if (event.text.unicode < 128)
+		{
+			if (event.text.unicode == 8) // check for backspace
+			{
+				this->removeLastChar();
+			}
+			else if (event.text.unicode == 22 && event.key.control) // check for control paste
+			{
+				this->setString(clipboard.getString());
+			}
+			else if (event.text.unicode == 3 && event.key.control) // check for control copy
+			{
+				clipboard.setString(this->getText());
+			}
+			else
+			{
+				char t = static_cast<char>(event.text.unicode);
+				this->addText(std::string(1, t));
+				int index = this->getText().length() - 1;
+				if (this->getSFMLText().findCharacterPos(index).x > window.getSize().x - 50)
+				{
+					this->addText(std::string("\n"));
+				}
+			}
+		}
+	}
+}
+
+void gui::Screen::removeNode(gui::Node* node)
+{
+	int iterator = -1;
+	for (int i =0;i<this->nodes.size();++i)
+	{
+		if (nodes[i] == node)
+		{
+			iterator = i;
+		}
+	}
+	if (iterator>0)
+	{
+		this->nodes.erase(this->nodes.begin() + iterator);
 	}
 }

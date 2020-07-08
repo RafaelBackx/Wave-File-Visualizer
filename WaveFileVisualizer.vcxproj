@@ -169,6 +169,7 @@
     <ClInclude Include="imaging\gui.h" />
     <ClInclude Include="imaging\visualization.h" />
     <ClInclude Include="io\endianness.h" />
+    <ClInclude Include="util\portable-file-dialogs.h" />
     <ClInclude Include="util\position.h" />
     <ClInclude Include="wave\wave.h" />
   </ItemGroup>
@@ -177,6 +178,9 @@
     <Image Include="sprites\pause.png" />
     <Image Include="sprites\play.png" />
     <Image Include="sprites\stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="sprites\arial.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

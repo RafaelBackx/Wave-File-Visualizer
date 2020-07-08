@@ -212,17 +212,17 @@ void wave::WaveReader::readSamples(std::istream& input)
 	}
 }
 
-void wave::WaveReader::cast(std::vector<uint8_t> data)
+void wave::WaveReader::cast(std::vector<uint8_t>& data)
 {
 	std::vector<int> sample_data(data.begin(),data.end());
 	this->samples = sample_data;
 }
-void wave::WaveReader::cast(std::vector<int16_t> data)
+void wave::WaveReader::cast(std::vector<int16_t>& data)
 {
 	std::vector<int> sample_data(data.begin(), data.end());
 	this->samples = sample_data;
 }
-void wave::WaveReader::cast(std::vector<int32_t> data)
+void wave::WaveReader::cast(std::vector<int32_t>& data)
 {
 	std::vector<int> sample_data(data.begin(), data.end());
 	this->samples = sample_data;

@@ -74,9 +74,9 @@ namespace wave
 		void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
 		void read_DATACHUNK(std::istream& input, GENERALHEADER& data, FMTCHUNK& fmt);
 		void read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& generalheader);
-		void cast(std::vector<uint8_t> data);
-		void cast(std::vector<int16_t> data);
-		void cast(std::vector<int32_t> data);
+		void cast(std::vector<uint8_t>& data);
+		void cast(std::vector<int16_t>& data);
+		void cast(std::vector<int32_t>& data);
 	};
 }
 

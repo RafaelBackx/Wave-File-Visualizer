@@ -47,7 +47,7 @@ namespace gui
 		const int getWidth() const { return this->buttonShape.getSize().x; }
 		const int getHeight() const { return this->buttonShape.getSize().y; }
 		const sf::Vector2f getSize() const { return this->buttonShape.getSize(); }
-		const std::string getText() const { return this->text.getString().toAnsiString(); }
+		const std::string getText() const { return this->text.getString(); }
 		sf::RectangleShape& getShape() { return this->buttonShape; }
 		const bool getFitTextToSize() { return this->fitTextToSize; }
 		const sf::Color getColor() { return this->color; }
@@ -224,6 +224,9 @@ namespace gui
 		bool focus = false;
 		std::variant<std::function<void()>> clickFunctions;
 		int textOffset = 0;
+		std::vector<sf::Vertex> pointer;
+		sf::Clock clock; // just to make the line blink
+		sf::Clipboard clipboard; // just for copy paste
 	public:
 		TextBox(float width, float height) : defaultSize(width,height), box(defaultSize) 
 		{
@@ -256,9 +259,10 @@ namespace gui
 		float getHeight() { return this->box.getSize().y; }
 		sf::RectangleShape getShape() { return this->box; }
 		sf::Text getSFMLText() { return this->text; }
-		std::string getText() { return this->text.getString().toAnsiString(); }
+		std::string getText() { return this->text.getString(); }
 		int getTextOffset() const { return this->textOffset; }
 
+		void handleEvent(sf::Event event, sf::RenderWindow& window);
 		void onClick(sf::Vector2f mouse) override;
 		void onHover(sf::Vector2f mouse) override {};
 		void onDrag(sf::Vector2f mouse) override {};
@@ -273,7 +277,7 @@ namespace gui
 		std::vector<Node*> nodes;
 		Screen() : nodes(0){}
 		void addNode(Node* node) { this->nodes.emplace_back(node); }
-		//void removeNode(Node node); //TODO find iterator of object and remove it by iterator
+		void removeNode(Node* node); //TODO find iterator of object and remove it by iterator
 		void updateNodesOnClick(sf::Vector2f mouse) { for (Node* n : this->nodes) { n->onClick(mouse); } }
 		void updateNodesOnHover(sf::Vector2f mouse) { for (Node* n : this->nodes) { n->onHover(mouse); } }
 		void updateNodesOnDrag(sf::Vector2f mouse) { for (Node* n : this->nodes) { n->onDrag(mouse); } }

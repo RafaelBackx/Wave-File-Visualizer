@@ -1,4 +1,5 @@
 #include "visualization.h"
+#include "..//util/portable-file-dialogs.h"
 
 const int getMask(uint16_t bitsPerSample) 
 {
@@ -39,25 +40,23 @@ void getMinMax(const std::vector<int> samples, double* min, double* max)
 
 void sfmlVisualization::Visualizer::showMenu()
 {
+	window.setSize(sf::Vector2u(300, 500));
+	sf::View view(sf::FloatRect(0, 0, 300, 500));
+	window.setView(view);
 	sf::Event event;
-	gui::TextBox textbox(200, 50);
-	textbox.setPosition((this->window.getSize().x / 2) - (textbox.getWidth()/2), 100);
-	textbox.setOnClick([&]()
+	gui::Button openFile(100, 30, "Open File...");
+	openFile.setPosition(sf::Vector2f((this->window.getSize().x / 2) - (openFile.getWidth() / 2), 100));
+	openFile.setOnClick([&]()
 		{
-			
-		});
-	textbox.setBorderWidth(1.0f);
-	textbox.setBorderColor(sf::Color::Black);
-	gui::Button start(100, 30, "start visulisation");
-	start.setPosition(sf::Vector2f((this->window.getSize().x / 2) - (start.getWidth() / 2), 250));
-	start.setOnClick([&]()
-		{
-			this->visualize(textbox.getText());
+			auto selection = pfd::open_file("Select a wav file", ".", { "Audio Files", "*.wav" }).result();
+			if (!selection.empty())
+			{
+				this->visualize(selection[0]);
+			}			
 		});
 	sf::Clipboard clipboard;
 	bool ctrlDown=false;
-	this->screen.addNode(&textbox);
-	this->screen.addNode(&start);
+	this->screen.addNode(&openFile);
 	while (this->window.isOpen())
 	{
 		while (this->window.pollEvent(event))
@@ -79,45 +78,8 @@ void sfmlVisualization::Visualizer::showMenu()
 				this->screen.updateNodesOnHover(mouse);
 				break;
 			}
-			case sf::Event::TextEntered:
-			{
-				std::cout << event.text.unicode << std::endl;
-				if (event.text.unicode < 128)
-				{
-					if (event.text.unicode == 8)
-					{
-						textbox.removeLastChar();
-					}
-					else if(event.text.unicode == 22 && ctrlDown) // check for control paste
-					{
-						textbox.setString(clipboard.getString().toAnsiString());
-					}
-					else if (event.text.unicode == 3 && ctrlDown) // check for control copy
-					{
-						clipboard.setString(textbox.getText());
-					}
-					else
-					{
-						char t = static_cast<char>(event.text.unicode);
-						textbox.addText(std::string(1, t));
-						int index = textbox.getText().length() - 1;
-						if (textbox.getSFMLText().findCharacterPos(index).x > this->window.getSize().x - 50)
-						{
-							textbox.addText(std::string("\n"));
-						}
-					}
-				}
-			}
 			case sf::Event::KeyPressed:
 			{
-				if (event.key.code == 71)//Left arrow key
-				{
-					textbox.decrementTextOffset();
-				}
-				else if (event.key.code == 72)//Right arrow key
-				{
-					textbox.incrementTextOffset();
-				}
 				ctrlDown = event.key.control;
 			}
 			case sf::Event::KeyReleased:
@@ -128,8 +90,7 @@ void sfmlVisualization::Visualizer::showMenu()
 			//Clear
 			this->window.clear(sf::Color::White);
 			//Draw
-			start.draw(this->window);
-			textbox.draw(this->window);
+			openFile.draw(this->window);
 			//Display
 			this->window.display();
 		}
@@ -218,7 +179,7 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 			music.setVolume(volume.getValue());
 			std::cout << "new circle x position: "  << volume.getCircle().getPosition().x << std::endl;
 		});
-	volume.setValue(50.0f);
+	volume.setValue(25.0f);
 	gui::Slider musicTime(400,10,15);
 	musicTime.setCircleColor(sf::Color::Color(48, 75, 194));
 	musicTime.setInnerRectColor(sf::Color::Color(50,156,66));
@@ -239,6 +200,13 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 			music.setPlayingOffset(offset);
 			music.play();
 		});
+	gui::Button backToMenu(200, 50, "Back To Menu");
+	backToMenu.setOnClick([&]()
+		{
+			music.stop();
+			this->showMenu();
+		});
+	backToMenu.setPosition(sf::Vector2f((windowWidth / 4) - backToMenu.getWidth(), this->window.getSize().y - ((this->window.getSize().y - windowHeight) / 4) - backToMenu.getHeight()));
 	gui::ListBox listBoxMeta(0, 0);
 	for (wave::ListField field : this->wavereader.getMetaData())
 	{
@@ -255,6 +223,7 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 	this->screen.addNode(&playButton);
 	this->screen.addNode(&volume);
 	this->screen.addNode(&musicTime);
+	this->screen.addNode(&backToMenu);
 	music.play();
 	while (this->window.isOpen())
 	{
@@ -311,6 +280,7 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 		volume.draw(this->window);
 		musicTime.draw(this->window);
 		listBoxMeta.draw(this->window);
+		backToMenu.draw(this->window);
 		this->window.display();
 	}
 }

@@ -20,6 +20,7 @@ namespace sfmlVisualization
 	public:
 		Visualizer(int windowWidth, int windowHeight) :screen(), window(), wavereader(), music() 
 		{
+			window.resetGLStates();
 			window.create(sf::VideoMode(windowWidth, windowHeight), "Visualizer", sf::Style::Titlebar | sf::Style::Close);
 		}
 		void showMenu();
