@@ -6,7 +6,7 @@ First you need to install [sfml](https://www.sfml-dev.org/download/sfml/2.5.1/) 
 Go to Project -> properties 
 and under C/C++ -> general -> Additional Include Directories you put the \include folder where you downloaded sfml.
 
-![](docs/img1.jpg)
+![](docs/img1.JPG)
 
 Repeat the process for "All Options"
 
