@@ -177,7 +177,6 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 	volume.setOnClick([&]()
 		{
 			music.setVolume(volume.getValue());
-			std::cout << "new circle x position: "  << volume.getCircle().getPosition().x << std::endl;
 		});
 	volume.setValue(25.0f);
 	gui::Slider musicTime(400,10,15);
@@ -211,7 +210,6 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 	for (wave::ListField field : this->wavereader.getMetaData())
 	{
 		std::string text = this->wavereader.list.listIds.at(field.getId()) + ": " + field.getValue();
-		std::cout << text << std::endl;
 		std::unique_ptr<gui::ListItem> item = std::make_unique<gui::ListItem>(text ,100,50);
 		item->setPadding(2.0f);
 		item->setColor(sf::Color::Color(210, 210, 210, 240));

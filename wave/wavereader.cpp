@@ -155,16 +155,6 @@ void wave::WaveReader::read(std::string filename)
 	//read data chunk, fills data object
 	read_DATACHUNK(file, this->data_chunk, fmt);
 	//this->readSamples(file);
-	std::cout << "Meta Data: " << std::endl;
-	for (ListField listfield : this->getMetaData())
-	{
-		std::cout << listfield.id << " " << std::endl;
-		for (int j=0;j<listfield.listFieldSize;j++)
-		{
-			std::cout << listfield.listFieldValue[j];
-		}
-		std::cout << std::endl;
- 	}
 }
 
 void wave::WaveReader::readSamples(std::istream& input)
@@ -252,5 +242,4 @@ wave::LISTCHUNK::LISTCHUNK()
 	this->listIds.insert(std::pair<std::string, std::string>("ISHP", "Sharpness"));
 	this->listIds.insert(std::pair<std::string, std::string>("ISRC", "Source Form"));
 	this->listIds.insert(std::pair<std::string, std::string>("ITCH", "Technician"));
-	//this->listIds.insert("IART", "VUILE JOOD");
 }
