@@ -274,7 +274,7 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 				//int value = this->wavereader.getSamples()[i];
 				int value = this->streamer.getBuffer()[i];
 				//	std::cout << "Test: " << std::dec << value << std::endl;
-				double height = (value / (max/2)) * windowHeight / 2;
+				double height = (value / max) * windowHeight / 2;
 				sf::RectangleShape rectangle(sf::Vector2f(rectWidth, height * -1));// times -1 because we want to draw up for positive and down for negative
 				rectangle.setFillColor(color);
 				//rectangle.setPosition(sf::Vector2f(((i - offset)*rectWidth), (windowHeight / 2)));
