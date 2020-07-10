@@ -120,22 +120,24 @@ sf::Color getColor(sf::Color c)
 
 void sfmlVisualization::Visualizer::visualize(std::string filename)
 {
-	this->wavereader.read(filename);
+	//this->wavereader.read(filename);
+	this->streamer.updateBuffer(0);
+	this->streamer.setFile(filename);
+	std::cout << filename << std::endl;
 	if (!music.openFromFile(filename))
 	{
 		std::cout << "Cannot open music file" << std::endl;
 	}
-	const int channelMask = getMask(this->wavereader.fmt.bitsPerSample);
-	double max = pow(2, this->wavereader.fmt.bitsPerSample);
+	const int channelMask = getMask(this->streamer.fmt.bitsPerSample);
+	double max = pow(2, this->streamer.fmt.bitsPerSample);
 	int windowWidth = 1500, windowHeight = 700;
 	int spacing = 5;
 	int spacingBetweenButtons = 10;
 	int offset = 0;
-	int length = this->wavereader.getSamples().size()/this->wavereader.fmt.numChannels;
 	int frameRate = 30;
-	double song_length = (double)length/(double)this->wavereader.fmt.sample_rate;
-	double samplesPerFrame = this->wavereader.fmt.sample_rate / frameRate;
-	double rectWidth = windowWidth / samplesPerFrame;
+	double samplesPerFrame = this->streamer.fmt.sample_rate / frameRate;
+	double rectWidth = (double) windowWidth / (double) this->streamer.getBufferSize();
+	std::cout << rectWidth << std::endl;
 	this->window.setFramerateLimit(frameRate); // change in the future probably
 	sf::Color color = sf::Color::Red;
 	sf::Image img;
@@ -207,9 +209,10 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 		});
 	backToMenu.setPosition(sf::Vector2f((windowWidth / 4) - backToMenu.getWidth(), this->window.getSize().y - ((this->window.getSize().y - windowHeight) / 4) - backToMenu.getHeight()));
 	gui::ListBox listBoxMeta(0, 0);
-	for (wave::ListField field : this->wavereader.getMetaData())
+	for (wave::ListField field : this->streamer.getMetaData())
 	{
-		std::string text = this->wavereader.list.listIds.at(field.getId()) + ": " + field.getValue();
+		std::string text = this->streamer.list.listIds.at(field.getId()) + ": " + field.getValue();
+		std::cout << text << std::endl;
 		std::unique_ptr<gui::ListItem> item = std::make_unique<gui::ListItem>(text ,100,50);
 		item->setPadding(2.0f);
 		item->setColor(sf::Color::Color(210, 210, 210, 240));
@@ -261,18 +264,24 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 		{
 			musicTime.setValue(music.getPlayingOffset().asSeconds());
 			window.clear(sf::Color::White); // clears the frame with given color
-			offset = this->music.getPlayingOffset().asSeconds() * this->wavereader.fmt.sample_rate;
+			offset = (this->music.getPlayingOffset().asSeconds() * this->streamer.fmt.sample_rate)*(this->streamer.fmt.bitsPerSample/8);
 			color = getColor(color);
 			// draw
-			for (int i = offset; i < samplesPerFrame + offset && i < length; i++)
+			//for (int i = offset; i < samplesPerFrame + offset && i < length; i++)
+			for (int i=0;i<this->streamer.getBuffer().size();i++)
 			{
 				//double height = 600.0 - transform(reducedSamples[i], channelMask);
-				double height = (this->wavereader.getSamples()[i] / max) * windowHeight / 2;
-				sf::RectangleShape rectangle(sf::Vector2f(rectWidth, height * -1));
+				//int value = this->wavereader.getSamples()[i];
+				int value = this->streamer.getBuffer()[i];
+				//	std::cout << "Test: " << std::dec << value << std::endl;
+				double height = (value / (max/2)) * windowHeight / 2;
+				sf::RectangleShape rectangle(sf::Vector2f(rectWidth, height * -1));// times -1 because we want to draw up for positive and down for negative
 				rectangle.setFillColor(color);
-				rectangle.setPosition(sf::Vector2f(((i - offset)*rectWidth), (windowHeight / 2)));
+				//rectangle.setPosition(sf::Vector2f(((i - offset)*rectWidth), (windowHeight / 2)));
+				rectangle.setPosition(sf::Vector2f((i*rectWidth), (windowHeight / 2)));
 				this->window.draw(rectangle);
 			}
+			this->streamer.updateBuffer(offset);
 		}
 		playButton.draw(this->window);
 		volume.draw(this->window);

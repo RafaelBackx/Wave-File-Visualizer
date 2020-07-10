@@ -1,13 +1,13 @@
 #ifndef WAVE_H
 #define WAVE_H
 #include <cstdint>
-#include <istream>
 #include <memory>
 #include <vector>
 #include <string>
 #include "..//util/position.h"
 #include <variant>
 #include <map>
+#include <fstream>
 
 namespace wave
 {
@@ -65,18 +65,54 @@ namespace wave
 		std::vector<ListField>& getMetaData() { return this->list.listFields; }
 		//std::vector<uint32_t> getSamplesOfChannel(int channel_no); //TODO implement
 	private:
-
-		void readSamples(std::istream& input);
-		template<typename T>
-		void readSamples(std::istream& input);
-		std::string getDataChunkID(GENERALHEADER& data);
 		void read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff);
 		void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
 		void read_DATACHUNK(std::istream& input, GENERALHEADER& data, FMTCHUNK& fmt);
 		void read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& generalheader);
+		std::string getDataChunkID(GENERALHEADER& data);
+		void readSamples(std::istream& input);
+		template<typename T>
+		void readSamples(std::istream& input);
 		void cast(std::vector<uint8_t>& data);
 		void cast(std::vector<int16_t>& data);
 		void cast(std::vector<int32_t>& data);
+	};
+
+	class WaveStreamer
+	{
+	private:
+		std::vector<int> buffer;
+		unsigned long int bufferSize;
+		unsigned long int dataOffset;
+	public:
+		std::ifstream input;
+		RIFFCHUNK riff;
+		FMTCHUNK fmt;
+		LISTCHUNK list;
+		WaveStreamer() : bufferSize(1024), dataOffset(0), buffer(0) {}
+		WaveStreamer(std::string filename) : bufferSize(1024), dataOffset(0), buffer(0), input(filename,std::ios::binary)
+		{
+			read_RIFFCHUNK(input, riff);
+			read_FMTCHUNK(input, fmt);
+			getDataOffset(input);
+		}
+		std::vector<int>& getBuffer() { return buffer; }
+		void setBufferSize(unsigned int bufferSize) { this->bufferSize = bufferSize; }
+		void updateBuffer(unsigned int offset);
+		void setFile(std::string filename);
+		std::vector<ListField>& getMetaData() { return this->list.listFields; }
+		unsigned long int getBufferSize() { return this->bufferSize; }
+	private:
+		void read_RIFFCHUNK(std::istream& input, RIFFCHUNK& riff);
+		void read_FMTCHUNK(std::istream& input, FMTCHUNK& fmt);
+		void read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& generalheader);
+		void getDataOffset(std::istream& input);
+		std::string getGeneralHeaderId(wave::GENERALHEADER& header)
+		{
+			return std::string(header.subChunkID, 4);
+		}
+		template<typename T>
+		void updateBuffer(unsigned int offset);
 	};
 }
 

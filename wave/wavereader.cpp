@@ -1,4 +1,3 @@
-#include "..//io/endianness.h"
 #include "wave.h"
 #include <iostream>
 #include <fstream>
@@ -30,6 +29,7 @@ void wave::WaveReader::read_DATACHUNK(std::istream& input, wave::GENERALHEADER& 
 		}
 		else
 		{
+			// read data and ignore it
 			auto list_data_array = std::make_unique<int8_t[]>(data.subChunkSize);
 			input.read(reinterpret_cast<char*>(list_data_array.get()), sizeof(char) * data.subChunkSize);
 		}
@@ -40,21 +40,6 @@ void wave::WaveReader::read_DATACHUNK(std::istream& input, wave::GENERALHEADER& 
 		//std::cout << this->metaData.size();
 		readSamples(input); 
 	}
-	/*else if(getDataChunkID(data) == "LIST")
-	{
-		read_LISTCHUNK(input, data);
-		wave::GENERALHEADER ACTUAL_DATA_HEADER;
-		input.read(reinterpret_cast<char*>(&ACTUAL_DATA_HEADER), sizeof(wave::GENERALHEADER));
-		data = ACTUAL_DATA_HEADER;
-		if (getDataChunkID(ACTUAL_DATA_HEADER) == "data")
-		{
-			readSamples(input);
-		}
-		else
-		{
-			std::cout << "Malformed wave file: the data block is not where it is supposed to be" << std::endl;
-		}
-	}*/
  	std::cout << "data bytes: " << data.subChunkSize << std::endl;
 }
 
@@ -154,7 +139,7 @@ void wave::WaveReader::read(std::string filename)
 	read_FMTCHUNK(file, this->fmt);
 	//read data chunk, fills data object
 	read_DATACHUNK(file, this->data_chunk, fmt);
-	//this->readSamples(file);
+	//this->readSamples(file);S
 }
 
 void wave::WaveReader::readSamples(std::istream& input)
@@ -163,7 +148,7 @@ void wave::WaveReader::readSamples(std::istream& input)
 	switch (fmt.bitsPerSample)
 	{
 	case 8:
-		readSamples <uint8_t> (input);
+		readSamples<uint8_t>(input);
 		break;
 	case 16:
 		readSamples<int16_t>(input);
@@ -186,6 +171,7 @@ void wave::WaveReader::readSamples(std::istream& input)
 	std::vector<T> _samples(width);
 	input.read(reinterpret_cast<char*>(&_samples[0]), this->data_chunk.subChunkSize);
 	this->variant = _samples;
+	std::cout << "Vector size: " << _samples.size() << std::endl;
 	switch (this->variant.index())
 	{
 	case 0:

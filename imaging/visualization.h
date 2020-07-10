@@ -13,6 +13,7 @@ namespace sfmlVisualization
 	{
 	private:
 		wave::WaveReader wavereader;
+		wave::WaveStreamer streamer;
 		sf::RenderWindow window;
 		sf::Music music;
 		std::string filename;

@@ -164,6 +164,7 @@
     <ClCompile Include="io\endianness.cpp" />
     <ClCompile Include="WaveFileVisualizer.cpp" />
     <ClCompile Include="wave\wavereader.cpp" />
+    <ClCompile Include="wave\waveStreamer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imaging\gui.h" />
