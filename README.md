@@ -15,4 +15,14 @@ Repeat the process for "All Options"
 Next go to Linker -> General and under Additional Library Directories you put again the \include directory.
 ![](docs/img3.JPG)
 
-For the last step go to the \lib folder where you installed sfml and copy the sfml-audio-d.lib and the sfml-graphics-d.lib and paste them in the same directory as the solution file. Now you should be able to run it in visual studio.
+Furthermore add the following (sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;) to Linker->Input->Additional Dependencies
+![](D:\Andere\c++\WaveFileVisualizer\docs\img4.JPG)
+
+For the last step add the following files to the same directory where the .snl file is located.
+
+- openal32.dll (/bin folder)
+- sfml-audio-d-2.dll (/bin folder)
+- sfml-system-d-2.dll (/bin folder)
+- sfml-window-d-2.dll (/bin folder)
+
+You might also need to change the solution platform to x86 instead of x64.
