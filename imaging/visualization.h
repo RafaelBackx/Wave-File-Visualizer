@@ -27,7 +27,5 @@ namespace sfmlVisualization
 		void showMenu();
 		void visualize(std::string filename);
 	};
-	//void chooseFile(); // TODO implement, Look for api with windows file explorer functionality
-	//void visualize(wave::WaveReader& wavereader, sf::Music* music);
 }
 #endif

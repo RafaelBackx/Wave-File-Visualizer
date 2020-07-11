@@ -12,18 +12,14 @@ void wave::WaveStreamer::read_FMTCHUNK(std::istream& input, wave::FMTCHUNK& fmt)
 
 void wave::WaveStreamer::read_LISTCHUNK(std::istream& input, wave::GENERALHEADER& generalheader)
 {
-	//auto list_data_array = std::make_unique<char[]>(generalheader.subChunkSize);
-	//input.read(reinterpret_cast<char*>(list_data_array.get()), sizeof(char) * generalheader.subChunkSize);
 	char info[4];
 	input.read(info, sizeof(char) * 4);
 	std::string infoString(info, 4);
 	if (infoString == "INFO")
 	{
 		generalheader.subChunkSize -= sizeof(char) * 4; // remove the size of the "INFO"
-		//generalheader.subChunkSize -= sizeof(uint32_t); // remove the size of the bytes that hold the size
 		while (generalheader.subChunkSize)
 		{
-			int nullterminationChar = 0;
 			ListField listfield;
 			// Read the name of the listfield
 			input.read(reinterpret_cast<char*>(&listfield.id), 4 * sizeof(char));
@@ -31,8 +27,6 @@ void wave::WaveStreamer::read_LISTCHUNK(std::istream& input, wave::GENERALHEADER
 			input.read(reinterpret_cast<char*>(&listfield.listFieldSize), sizeof(uint32_t));
 			// Read the data of this listfield
 			int size = sizeof(uint32_t) + (sizeof(char) * 4) + (listfield.listFieldSize);
-			//if (!(generalheader.subChunkSize - size)) nullterminationChar = 0;
-			//listfield.listFieldValue = std::make_shared<char[]>(listfield.listFieldSize);
 			listfield.listFieldValue = new char[listfield.listFieldSize];
 			input.read(listfield.listFieldValue, sizeof(char) * (listfield.listFieldSize));
 			char data = input.get();

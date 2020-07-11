@@ -226,6 +226,18 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 	this->screen.addNode(&musicTime);
 	this->screen.addNode(&backToMenu);
 	music.play();
+	auto musicTime_bounds = musicTime.getRectangle().getGlobalBounds();
+	gui::Button totalMusicTime(50,50,""), currentMusicTime(50,50,"");
+	totalMusicTime.setPosition(sf::Vector2f(musicTime_bounds.left + musicTime_bounds.width + 10, musicTime_bounds.top));
+	currentMusicTime.setPosition(sf::Vector2f(musicTime_bounds.left - 70, musicTime_bounds.top));
+	totalMusicTime.setColor(sf::Color::Transparent);
+	currentMusicTime.setColor(sf::Color::Transparent);
+	totalMusicTime.setTextColor(sf::Color::Black);
+	currentMusicTime.setTextColor(sf::Color::Black);
+	float totalMusicDuration = music.getDuration().asSeconds();
+	int totalMinutes = totalMusicDuration / 60;
+	int totalSec = fmod(totalMusicDuration, 60);
+	totalMusicTime.setText(std::to_string(totalMinutes) + ":" + std::to_string(totalSec));
 	while (this->window.isOpen())
 	{
 		sf::Event event;
@@ -262,9 +274,13 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 		music.setVolume(volume.getValue());
 		if (music.Playing)
 		{
-			musicTime.setValue(music.getPlayingOffset().asSeconds());
+			float seconds = music.getPlayingOffset().asSeconds();
+			int minutes = seconds / 60;
+			int sec = fmod(seconds,60);
+			currentMusicTime.setText(std::to_string(minutes) + ":" + std::to_string(sec));
+			musicTime.setValue(seconds);
 			window.clear(sf::Color::White); // clears the frame with given color
-			offset = (this->music.getPlayingOffset().asSeconds() * this->streamer.fmt.sample_rate)*(this->streamer.fmt.bitsPerSample/8);
+			offset = (seconds * this->streamer.fmt.sample_rate)*(this->streamer.fmt.bitsPerSample/8);
 			color = getColor(color);
 			// draw
 			//for (int i = offset; i < samplesPerFrame + offset && i < length; i++)
@@ -288,6 +304,8 @@ void sfmlVisualization::Visualizer::visualize(std::string filename)
 		musicTime.draw(this->window);
 		listBoxMeta.draw(this->window);
 		backToMenu.draw(this->window);
+		currentMusicTime.draw(this->window);
+		totalMusicTime.draw(this->window);
 		this->window.display();
 	}
 }

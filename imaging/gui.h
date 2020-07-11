@@ -76,6 +76,7 @@ namespace gui
 		void setOnClick(std::function<void(Button& btn)>func) { this->functions = func; }
 		void setFitTextToSize(bool fit) { this->fitTextToSize = fit; }
 		void setColor(sf::Color c) { this->color = c; this->buttonShape.setFillColor(c); }
+		void setTextColor(sf::Color c) { this->text.setFillColor(c); }
 		void setHoverColor(sf::Color c) { this->hoverColor = c; }
 		void setTexture(sf::Texture texture) { this->texture = texture; this->texture.setSmooth(true); this->buttonShape.setTexture(&this->texture); }
 		void setTexture(std::string pathToTexture)
